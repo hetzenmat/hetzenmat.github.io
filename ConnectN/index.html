@@ -2,12 +2,13 @@
 <html>
 <head>
     <link rel="stylesheet" type="text/css" href="css/style.css">
+    <title>ConnectN</title>
 </head>
 <body>
 
     <div id="inputs">
         N: <input type="number" id="input_n" value="4" min="3">
-        Rows: <input type="number" id="input_rows" value="6" min="4">
+        Rows: <input type="number" id="input_rows" value="6" min="4" max="31">
         Cols: <input type="number" id="input_cols" value="7" min="4">
         <button id="button_new_game">New Game</button>
     </div>
@@ -15,14 +16,15 @@
         <div id="board"></div>
     </div>
 
-    <!--
     <script src="../lib/jquery-2.2.4.min.js"></script>
     <script src="../lib/jquery-ui.min.js"></script>
-    -->
 
+    <!--
     <script src="https://code.jquery.com/jquery-2.2.4.min.js" integrity="sha256-BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44=" crossorigin="anonymous"></script>
     <script src="https://code.jquery.com/ui/1.11.4/jquery-ui.min.js" integrity="sha256-xNjb53/rY+WmG+4L6tTl9m6PpqknWZvRt0rO1SRnJzw=" crossorigin="anonymous"></script>
+    -->
 
+    <script src="js/Board.js"></script>
     <script src="js/main.js"></script>
 </body>
 </html>
