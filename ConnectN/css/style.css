@@ -1,0 +1,33 @@
+body {
+    margin: 0;
+    padding: 0;
+}
+
+#inputs {
+    border: 1px solid black;
+}
+
+#board {
+    display: inline-block;
+    border:1px solid black;
+    height: 100%;
+    width: 100%;
+}
+
+.board-column {
+    background-color: blue;
+    float: left;
+}
+
+.disk {
+    border-radius: 50%;
+    position: absolute;
+}
+
+.disk-player1 {
+    background-color: yellow;
+}
+
+.disk-player2 {
+    background-color: red;
+}
