@@ -1,0 +1,44 @@
+@font-face {
+    font-family: 'Pagella';
+    src: url('../../fonts/pagella/texgyrepagella-regular.otf');
+}
+
+@font-face {
+    font-family: 'Pagella';
+    src: url('../../fonts/pagella/texgyrepagella-bold.otf');
+    font-weight: bold;
+}
+
+@font-face {
+    font-family: 'Pagella';
+    src: url('../../fonts/pagella/texgyrepagella-italic.otf');
+    font-style: italic;
+}
+
+@font-face {
+    font-family: 'Pagella';
+    src: url('../../fonts/pagella/texgyrepagella-bolditalic.otf');
+    font-weight: bold;
+    font-style: italic;
+}
+
+html {
+    font-family: 'Pagella', serif;
+    text-align: justify;
+    line-height: 2;
+    font-size: 25px;
+}
+
+.wrapper {
+    max-width: 40rem;
+    margin: 0 auto;
+
+}
+
+h1 {
+    font-size: 2em;
+}
+
+footer {
+    text-align: right;
+}

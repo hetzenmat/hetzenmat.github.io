@@ -24,10 +24,10 @@ body {
     position: absolute;
 }
 
-.disk-player1 {
+.disk-player0 {
     background-color: yellow;
 }
 
-.disk-player2 {
+.disk-player1 {
     background-color: red;
 }
