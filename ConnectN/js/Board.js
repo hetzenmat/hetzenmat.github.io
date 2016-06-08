@@ -42,10 +42,10 @@ Board.isSetPlayer = (board, player, row, column) => {
 /**
  * returns the row of the move
  */
-Board.move = (board, column) => {
+Board.move = (board, player, column) => {
     for (var i = 0; i < board.rows; i++) {
         if (!Board.isSet(board, i, column)) {
-            board.column[board.currentPlayer][column] |= (1 << i);
+            board.column[player][column] |= (1 << i);
             return i;
         }
     }
@@ -130,8 +130,8 @@ Board.won = (board, player) => {
         }
     }
 
-    for (var column = board.columns - 1; column >= board.N; column--) {
-        for (var row = 0; row < board.rows - board.N; row++) {
+    for (var column = board.columns - 1; column >= board.N - 1; column--) {
+        for (var row = 0; row <= board.rows - board.N; row++) {
             var consecutive = true;
             for (var i = 0; i < board.N; i++) {
                 if (!Board.isSetPlayer(board, player, row + i, column - i)) {
@@ -198,12 +198,19 @@ Board.getWinningMoves = (board, player) => {
                 }
             }
 
-            if (consecutive)
-                return true;
+            if (consecutive) {
+                for (var i = 0; i < board.N; i++) {
+                    moves.push({
+                        row:    row + i,
+                        column: column + i
+                    });
+                }
+                return moves;
+            }
         }
     }
 
-    for (var column = board.columns - 1; column >= board.N; column--) {
+    for (var column = board.columns - 1; column >= board.N - 1; column--) {
         for (var row = 0; row < board.rows - board.N; row++) {
             var consecutive = true;
             for (var i = 0; i < board.N; i++) {
@@ -213,10 +220,19 @@ Board.getWinningMoves = (board, player) => {
                 }
             }
 
-            if (consecutive)
-                return true;
+            if (consecutive) {
+                for (var i = 0; i < board.N; i++) {
+                    moves.push({
+                        row: row + i,
+                        column: column - i
+                    });
+                }
+                return moves;
+            }
         }
     }
+
+    return [];
 };
 
 Board.isGameOver = (board) => {

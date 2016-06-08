@@ -4,11 +4,11 @@ $(() => {
     var input_rows = $('#input_rows');
     var input_cols = $('#input_cols');
 
-    var N, rows, cols, disk_size, game_running, can_make_move;
+    var N, rows, cols, disk_size, game_running, can_make_move, computer_color;
     var board;
 
     var Size = {
-        width: 0,
+        width:   0,
         height : 0
     };
 
@@ -36,6 +36,12 @@ $(() => {
             board = Board.new(rows, cols, N, Board.GameType.AgainstPlayer, 0);
         } else if (checkedValue === $('#radio-computer').val()) {
             board = Board.new(rows, cols, N, Board.GameType.AgainstComputer, 0);
+            if ($('#computer-begins').is(':checked')) {
+                computer_color = 0;
+                board.currentPlayer = 1;
+            } else {
+                computer_color = 1;
+            }
         } else {
             throw new Error('No checked value found.');
         }
@@ -45,6 +51,9 @@ $(() => {
             $('#board').append('<div class="board-column" data-id="' + i + '"></div>');
         }
         setBoardSize();
+
+        if (computer_color === 0)
+            computerMove();
     }
 
     $('#button_new_game').on('click', newGame);
@@ -106,6 +115,31 @@ $(() => {
         });
     }
 
+    function computerMove() {
+        move = randomMove(board, Board.getNextPlayer(board));
+        
+        // element to be inserted
+        var elem = $('<div class="disk disk-player' + computer_color + '"></div>');
+
+        // set the size of the circle
+        elem.css({
+            'width' :  Size.width + 'px',
+            'height' : Size.width + 'px'
+        });
+
+        $('.board-column[data-id=' + move.column + ']').prepend(elem);
+        elem.data('row', board.rows - 1 - move.row);
+        elem.attr('id', 'pos-' + move.row + '-' + move.column);
+        elem.animate({'top' : ((board.rows - 1 - move.row) * Size.width + $('#board').position().top) + 'px'}, 1000, 'easeOutBounce');
+    
+        if (Board.isGameOver(board)) {
+            game_running = false;
+            $('#move-indicator').remove();
+        } else {
+            can_make_move = true;
+        }
+    }
+
     $(document).on('click', '.board-column', function() {
 
         if (!game_running || !can_make_move)
@@ -131,25 +165,25 @@ $(() => {
             return;
         }
 
-        var row;
-        var player_won, computer_won;
-        if (board.gameType === Board.GameType.AgainstPlayer) {
-            row = Board.move(board, column);
-            $('#move-indicator').removeClass('disk-player' + board.currentPlayer);
-
-            player_won = Board.won(board, board.currentPlayer);
-            board.currentPlayer = Board.getNextPlayer(board);
-
-            $('#move-indicator').addClass('disk-player' + board.currentPlayer);
-        } else if (board.gameType === Board.GameType.AgainstComputer) {
-            
-        }
-
+        var row = Board.move(board, board.currentPlayer, column);
         if (Board.isGameOver(board)) {
             game_running = false;
-        } else {
-            can_make_move = true;
+            $('#move-indicator').remove();
         }
+
+        if (game_running) {
+            if (board.gameType === Board.GameType.AgainstPlayer) {
+                $('#move-indicator').removeClass('disk-player' + board.currentPlayer);
+                board.currentPlayer = Board.getNextPlayer(board);
+                $('#move-indicator').addClass('disk-player' + board.currentPlayer);
+                can_make_move = true;
+            } else if (board.gameType === Board.GameType.AgainstComputer) {
+                computerMove();
+            }
+        }
+
+        var player0won = Board.won(board, 0);
+        var player1won = Board.won(board, 1);
 
         // add element to current column
         $(this).prepend(elem);
@@ -158,34 +192,36 @@ $(() => {
         elem.attr('id', 'pos-' + row + '-' + column);
 
         elem.animate({'top' : ((board.rows - 1 - row) * Size.width + $('#board').position().top) + 'px'}, 1000, 'easeOutBounce', () => {
-            if (board.gameType === Board.GameType.AgainstPlayer) {
-                
-                if (player_won) {
-
-                    var moves = Board.getWinningMoves(board, Board.getNextPlayer(board));
-                    moves.forEach((move) => {
-                        $('#pos-' + move.row + '-' + move.column).css('box-shadow', 'inset 0 0 2rem #000000');
-                    });
-
-                    switch (Board.getNextPlayer(board)) {
-                        case 0:
-                            alert('Player Yellow has won!');
-                            break;
-
-                        case 1:
-                            alert('Player Red has won!');
-                            break;
-                    }
-                    game_running = false;
-                    return;
-                }
-                
-            } else if (board.GameType === Board.GameType.AgainstComputer) {
-                // TODO
+            if (player0won || player1won) {
+                var moves = Board.getWinningMoves(board, player0won ? 0 : 1);
+                moves.forEach((move) => {
+                    $('#pos-' + move.row + '-' + move.column).css('box-shadow', 'inset 0 0 2rem #000000');
+                });
             }
 
-            if (Board.legalMoves(board).length === 0) {
-                alert('Remis');
+            if (board.gameType === Board.GameType.AgainstPlayer) {
+                if (player0won) {
+                    alert('Player Yellow has won!');
+                } else if (player1won) {
+                    alert('Player Red has won!');
+                } else if (Board.legalMoves(board).length === 0) {
+                    alert('Remis');
+                }
+            } else if (board.gameType === Board.GameType.AgainstComputer) {
+                if (player0won || player1won) {
+                    won_color = player0won ? 0 : 1;
+                    if (won_color === computer_color) {
+                        alert('Computer has won!');
+                        return;
+                    } else {
+                        alert('Player has won!');
+                        return;
+                    }
+                }
+
+                if (Board.legalMoves(board).length === 0) {
+                    alert('Remis');
+                }
             }
         });
     });
