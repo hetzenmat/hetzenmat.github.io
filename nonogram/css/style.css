@@ -1,0 +1,89 @@
+@font-face {
+    font-family: 'Pagella';
+    src: url('../../fonts/pagella/texgyrepagella-regular.otf');
+}
+
+@font-face {
+    font-family: 'Pagella';
+    src: url('../../fonts/pagella/texgyrepagella-bold.otf');
+    font-weight: bold;
+}
+
+@font-face {
+    font-family: 'Pagella';
+    src: url('../../fonts/pagella/texgyrepagella-italic.otf');
+    font-style: italic;
+}
+
+@font-face {
+    font-family: 'Pagella';
+    src: url('../../fonts/pagella/texgyrepagella-bolditalic.otf');
+    font-weight: bold;
+    font-style: italic;
+}
+
+html {
+    font-family: 'Pagella', serif;
+    text-align: justify;
+    line-height: 2;
+    font-size: 25px;
+}
+
+.content {
+    max-width: 40rem;
+    margin: 0 auto;
+}
+
+h1 {
+    font-size: 2.5em;
+}
+
+footer {
+    text-align: right;
+}
+
+.div-table {
+    display: table;
+    table-layout: fixed;
+    width: 100%;
+}
+
+.div-table div {
+    display: table-cell;
+    text-align: center;
+}
+
+.div-table input, label {
+    display: inline;
+    float: none;
+}
+
+.center {
+    text-align: center;
+}
+
+input {
+    font-size: 30px;
+    font-family: 'Pagella', serif;
+}
+
+input[type='number'] {
+    width: 100px;
+    text-align: center;
+}
+
+#grid {
+    width: 70%;
+    table-layout: fixed;
+    border-collapse: collapse;
+}
+
+#grid td {
+    border: 1px solid black;
+    height: 20px;
+    box-sizing: border-box;
+}
+
+#grid tr:hover {
+    background-color: black;
+}

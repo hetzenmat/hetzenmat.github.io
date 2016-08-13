@@ -125,7 +125,7 @@ class Puzzle {
         this.rows = config.rows;
         this.columns = config.columns;
 
-        this.solution = ["...#####..",
+        /*this.solution = ["...#####..",
                          ".########.",
                          "##..######",
                          "#....##..#",
@@ -134,7 +134,48 @@ class Puzzle {
                          "#######..#",
                          "##########",
                          "#########.",
-                         ".#######.."];
+                         ".#######.."];*/
+
+        this.solution = ['.#####................######..',
+'##.##..................##..##.',
+'#..#....................##..##',
+'#..##....................#...#',
+'#...#....................#...#',
+'#....##.................##...#',
+'##....#####.#######.#####....#',
+'.###.....##############....###',
+'.#############################',
+'..###########################.',
+'....########################..',
+'.....#####################....',
+'..###...###############...###.',
+'#######..#############..######',
+'###....#..####...####..#....##',
+'##.######..###...###..######.#',
+'##########..##...##..#########',
+'.#####.##...##...##...##.####.',
+'.......##.#..#...#..#.##......',
+'.......#####.#...#.#####......',
+'.......#####.#...#.#####......',
+'.......#######...######.......',
+'........#####.....#####.......',
+'.........####.....####........',
+'.........####.....####........',
+'.........###.......###........',
+'..........##.......###........',
+'..........#.........#.........',
+'..........###########.........',
+'.........###.......###........',
+'.........#...........#........',
+'.........#..##...##..#........',
+'.........##.##...##.##........',
+'.........##.........##........',
+'..........##..###..##.........',
+'#..........#########.........#',
+'##...........#####..........##',
+'####......................####',
+'#######................#######',
+'##########..........##########'];
         
         this.solution = this.solution.map(row => Util.stringToArray(row).map(block => block === '#' ? BLOCK : EMPTY));
     }
@@ -158,18 +199,13 @@ class Puzzle {
             output += '\n';
         }
 
-        for (let i = 0; i < this.width; i++) {
+        for (let i = 0; i < this.height; i++) {
             output += row_number_strings[i];
-            for (let j = 0; j  < this.height; j++) {
-
-                try {
-                    if (state[i][j] === EMPTY)
-                        output += '.';
-                    else
-                        output += '#';
-                } catch(err) {
-                    output += '_';
-                }
+            for (let j = 0; j < this.width; j++) {
+                if (state[i][j] === EMPTY)
+                    output += '.';
+                else
+                    output += '#';
             }
             output += '\n';
         }
@@ -274,13 +310,26 @@ class Puzzle {
                     }
                 }
             }
+
+            // return false if not all blocks were found
+            if (rows_completed === this.height && block_index !== column.length) {
+                return false;
+            }
+
+            // TODO: check if the column can't be completed with the remaining blocks
         }
 
         return true;
     }
     
     dfs(row_index, state) {
-        
+
+        this.nodes += 1;
+        if (row_index > this.maxRow) {
+            console.log('max row: ' + row_index + '\nnodes: ' + this.nodes);
+            this.maxRow = row_index;
+        }
+
         if (!this.validate(state)) {
             return;
         }
@@ -306,10 +355,14 @@ class Puzzle {
     }
 
     solve() {
+
+        console.log('generating permutations');
         this.generate_permutations();
 
         this.solutions = [];
-
+        this.nodes = 0;
+        this.maxRow = 0;
+        console.log('solving');
         this.dfs(-1, []);
 
         console.log(this.solutions.length);

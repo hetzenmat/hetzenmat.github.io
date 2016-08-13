@@ -2,11 +2,55 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>Nonogram Solver</title>
+    <link rel="stylesheet" type="text/css" href="css/style.css"> 
 </head>
 <body>
-    <script src="Util.js"></script>
-    <script src="Puzzle.js"></script>
-    <script src="main.js"></script>
+<div class="content">
+    <h1>Nonogram Solver</h1>
+
+    <p>
+        <div class="div-table">
+            <div>
+                <label>
+                    <input type="number" id="input-width" value="10">
+                    Puzzle Width
+                </label>
+            </div>
+            <div>
+                <label>
+                    <input type="number" id="input-height" value="10">
+                    Puzzle Height
+                </label>
+            </div>
+            <div>
+                <input type="button" id="button-create" value="Create Nonogram">
+            </div>
+        </div>
+    </p>
+    <p>
+        <table id="grid" align="center">
+            <tr>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+            <tr>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+            <tr>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+        </table>
+    </p>
+</div>
+
+<script src="Util.js"></script>
+<script src="Puzzle.js"></script>
+<script src="main.js"></script>
 </body>
 </html>
