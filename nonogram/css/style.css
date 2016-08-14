@@ -84,6 +84,6 @@ input[type='number'] {
     box-sizing: border-box;
 }
 
-#grid tr:hover {
-    background-color: black;
-}
+/*#grid tr:hover {
+    background: black !important;
+}*/

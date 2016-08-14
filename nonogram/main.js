@@ -5,36 +5,95 @@ if (document.readyState !== 'loading')
 else
     document.addEventListener('DOMContentLoaded', document_ready);
 
-let grid, cells, button_create, input_width, input_height;
+let UI = {
+    hover_background_color: '#b3b3b3'
+};
+
+let grid, cells, button_create, input_width, input_height, column_elements, row_elements;
 let resize_timeout;
 
+function get_column_index(column_class) {
+    let column_index = +column_class.split('-')[1];
+
+    return column_index;
+}
+
+function get_coords(id) {
+    let coords = id.split('-');
+    return {
+        row: +coords[0],
+        column: + coords[1]
+    };
+}
+
 function mouseenter_cell(cell) {
-    console.log(cell.classList[1]);
+    let coords = get_coords(cell.id);
+
+    for (let i = 0; i < column_elements[coords.column].length; i++) {
+        column_elements[coords.column][i].style.background = UI.hover_background_color;
+    }
+
+    for (let i = 0; i < row_elements[coords.row].length; i++) {
+        row_elements[coords.row][i].style.background = UI.hover_background_color;
+    }
+}
+
+function mouseleave_cell(cell) {
+    let coords = get_coords(cell.id);
+
+    for (let i = 0; i < column_elements[coords.column].length; i++) {
+        column_elements[coords.column][i].style.background = 'white';
+    }
+
+    for (let i = 0; i < row_elements[coords.row].length; i++) {
+        row_elements[coords.row][i].style.background = 'white';
+    }
+}
+
+function onclick_row_constraint(cell) {
+    // TODO
+}
+
+function onclick_column_constraint(cell) {
+    // TODO
 }
 
 function update_table() {
-    console.log('resized');
     let cell_width = cells[0].offsetWidth;
     cells.forEach(cell => cell.style.height = cell_width + 'px');
 }
 
 function create_nonogram() {
-
     let width = +input_width.value;
     let height = +input_height.value;
 
-    let html = '';
+    let html = '<tr>\n<td></td>\n';
 
+    for (let i = 0; i < width; i++) {
+        html += '<td class="constraint-column-' + i + '" onclick="onclick_column_constraint(this)"></td>\n';
+    }
+
+    html += '</tr>\n';
     for (let i = 0; i < height; i++) {
-        html += '<tr class="row row-' + i + '">\n';
+        html += '<tr>\n<td class="constraint-row-' + i + '" onclick="onclick_row_constraint(this)"></td>\n';
         for (let j = 0; j < width; j++) {
-            html += '<td class="column column-' + j + '" onmouseenter="mouseenter_cell(this)"></td>\n';
+            html += '<td id="' + i + '-' + j + '" class="row-' + i + ' column-' + j + '" onmouseenter="mouseenter_cell(this)" onmouseleave="mouseleave_cell(this)"></td>\n';
         }
         html += '</tr>\n';
     }
 
     grid.innerHTML = html;
     cells = document.querySelectorAll('#grid td');
+
+    column_elements = new Array(width);
+    for (let i = 0; i < width; i++) {
+        column_elements[i] = document.getElementsByClassName('column-' + i);
+    }
+    row_elements = new Array(height);
+    for (let i = 0; i < height; i++) {
+        row_elements[i] = document.getElementsByClassName('row-' + i);
+    }
+
     update_table();
 }
 
@@ -54,6 +113,8 @@ function document_ready() {
         clearTimeout(resize_timeout);
         resize_timeout = setTimeout(update_table, 100);
     };
+
+    create_nonogram();
 }
 
 // http://www.janko.at/Raetsel/Nonogramme/1622.a.htm
