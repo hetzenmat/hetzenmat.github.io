@@ -9,14 +9,17 @@ let UI = {
     hover_background_color: '#b3b3b3'
 };
 
-let grid, cells, button_create, input_width, input_height, column_elements, row_elements;
-let resize_timeout;
+let puzzle;
+let constraints;
 
-function get_column_index(column_class) {
+/*let grid, cells, button_create, input_width, input_height, column_elements, row_elements;
+let resize_timeout; => UI*/
+
+/*function get_column_index(column_class) {
     let column_index = +column_class.split('-')[1];
 
     return column_index;
-}
+}*/
 
 function get_coords(id) {
     let coords = id.split('-');
@@ -29,92 +32,153 @@ function get_coords(id) {
 function mouseenter_cell(cell) {
     let coords = get_coords(cell.id);
 
-    for (let i = 0; i < column_elements[coords.column].length; i++) {
-        column_elements[coords.column][i].style.background = UI.hover_background_color;
+    for (let i = 0; i < UI.column_elements[coords.column].length; i++) {
+        UI.column_elements[coords.column][i].style.background = UI.hover_background_color;
     }
 
-    for (let i = 0; i < row_elements[coords.row].length; i++) {
-        row_elements[coords.row][i].style.background = UI.hover_background_color;
+    for (let i = 0; i < UI.row_elements[coords.row].length; i++) {
+        UI.row_elements[coords.row][i].style.background = UI.hover_background_color;
     }
 }
 
 function mouseleave_cell(cell) {
     let coords = get_coords(cell.id);
 
-    for (let i = 0; i < column_elements[coords.column].length; i++) {
-        column_elements[coords.column][i].style.background = 'white';
+    for (let i = 0; i < UI.column_elements[coords.column].length; i++) {
+        UI.column_elements[coords.column][i].style.background = 'white';
     }
 
-    for (let i = 0; i < row_elements[coords.row].length; i++) {
-        row_elements[coords.row][i].style.background = 'white';
+    for (let i = 0; i < UI.row_elements[coords.row].length; i++) {
+        UI.row_elements[coords.row][i].style.background = 'white';
     }
 }
 
 function onclick_row_constraint(cell) {
-    // TODO
+    let class_name = cell.classList[0];
+    let row = +class_name.split('-')[2];
+
+    let result = prompt('', constraints.rows[row].join(' '));
+
+    constraints.rows[row] = result.split(' ').map(str => +str);
+    create_table();
 }
 
 function onclick_column_constraint(cell) {
-    // TODO
+    let class_name = cell.classList[0];
+    let column = +class_name.split('-')[2];
+
+    let result = prompt('', constraints.columns[column].join(' '));
+
+    constraints.columns[column] = result.split(' ').map(str => +str);
+    create_table();
 }
 
 function update_table() {
-    let cell_width = cells[0].offsetWidth;
-    cells.forEach(cell => cell.style.height = cell_width + 'px');
+
+    let em = 1;
+    while (UI.cells[0].offsetHeight !== UI.cells[0].offsetWidth) {
+        let cell_width = UI.cells[0].offsetWidth;
+        UI.cells.forEach(cell => {
+            cell.style.height = cell_width + 'px';
+            cell.style.fontSize = em + 'em';
+        });
+        em -= 0.1;
+    }
 }
 
-function create_nonogram() {
-    let width = +input_width.value;
-    let height = +input_height.value;
+function create_table() {
+    let html = '';
 
-    let html = '<tr>\n<td></td>\n';
+    let max_constraints_column = constraints.columns.reduce((prev, curr) => Math.max(prev, curr.length), 0);
+    let max_constraints_row = constraints.rows.reduce((prev, curr) => Math.max(prev, curr.length), 0);
 
-    for (let i = 0; i < width; i++) {
-        html += '<td class="constraint-column-' + i + '" onclick="onclick_column_constraint(this)"></td>\n';
+    for (let k = 0; k < max_constraints_column; k++) {
+        html += '<tr>\n';
+        html += '<td></td>\n'.repeat(max_constraints_row);
+        for (let i = 0; i < puzzle.width; i++) {
+
+            let index = k - max_constraints_column + constraints.columns[i].length;
+            let value;
+            if (index < 0) {
+                value = '';
+            } else {
+                value = constraints.columns[i][index];
+            }
+
+            html += '<td class="constraint-column-' + i + '" onclick="onclick_column_constraint(this)">' + value + '</td>\n';
+        }
+        html += '</tr>\n';
     }
+    
+    for (let i = 0; i < puzzle.height; i++) {
+        html += '</tr>\n';
+        //html += '<td></td>\n'.repeat(max_constraints_column);
+        for (let k = 0; k < max_constraints_row; k++) {
+            let index = k - max_constraints_row + constraints.rows[i].length;
+            let value;
+            if (index < 0) {
+                value = '';
+            } else {
+                value = constraints.rows[i][index];
+            }
 
-    html += '</tr>\n';
-    for (let i = 0; i < height; i++) {
-        html += '<tr>\n<td class="constraint-row-' + i + '" onclick="onclick_row_constraint(this)"></td>\n';
-        for (let j = 0; j < width; j++) {
+            html += '<td class="constraint-row-' + i + '" onclick="onclick_row_constraint(this)">' + value + '</td>\n';
+        }
+        
+        for (let j = 0; j < puzzle.width; j++) {
             html += '<td id="' + i + '-' + j + '" class="row-' + i + ' column-' + j + '" onmouseenter="mouseenter_cell(this)" onmouseleave="mouseleave_cell(this)"></td>\n';
         }
         html += '</tr>\n';
     }
 
-    grid.innerHTML = html;
-    cells = document.querySelectorAll('#grid td');
+    UI.grid.innerHTML = html;
+    UI.cells = document.querySelectorAll('#grid td');
 
-    column_elements = new Array(width);
-    for (let i = 0; i < width; i++) {
-        column_elements[i] = document.getElementsByClassName('column-' + i);
+    UI.column_elements = new Array(puzzle.width);
+    for (let i = 0; i < puzzle.width; i++) {
+        UI.column_elements[i] = document.getElementsByClassName('column-' + i);
     }
-    row_elements = new Array(height);
-    for (let i = 0; i < height; i++) {
-        row_elements[i] = document.getElementsByClassName('row-' + i);
+
+    UI.row_elements = new Array(puzzle.height);
+    for (let i = 0; i < puzzle.height; i++) {
+        UI.row_elements[i] = document.getElementsByClassName('row-' + i);
     }
 
     update_table();
 }
 
-function document_ready() {
-    grid = document.getElementById('grid');
-    cells = document.querySelectorAll('#grid td');
+function create_nonogram() {
+    let width = +UI.input_width.value;
+    let height = +UI.input_height.value;
 
-    button_create = document.getElementById('button-create');
-    button_create.onclick = create_nonogram;
+    puzzle = new Puzzle(width, height);
 
-    input_width = document.getElementById('input-width');
-    input_height = document.getElementById('input-height');
-
-    update_table();
-
-    window.onresize = function() {
-        clearTimeout(resize_timeout);
-        resize_timeout = setTimeout(update_table, 100);
+    constraints = {
+        rows: new Array(height),
+        columns: new Array(width)
     };
 
+    constraints.rows.fill([0]);
+    constraints.columns.fill([0]);
+
+    create_table();
+}
+
+function document_ready() {
+    UI.grid = document.getElementById('grid');
+
+    UI.button_create = document.getElementById('button-create');
+    UI.button_create.onclick = create_nonogram;
+
+    UI.input_width = document.getElementById('input-width');
+    UI.input_height = document.getElementById('input-height');
+
     create_nonogram();
+
+    window.onresize = function() {
+        clearTimeout(UI.resize_timeout);
+        UI.resize_timeout = setTimeout(update_table, 100);
+    };
 }
 
 // http://www.janko.at/Raetsel/Nonogramme/1622.a.htm
@@ -322,8 +386,10 @@ let wappentier = {
     ]
 };
 
-let puzzle1 = new Puzzle(config1);
-let puzzle2 = new Puzzle(config2);
+let puzzle1 = new Puzzle(config1.width, config1.height);
+puzzle1.set_constraints(config1);
+
+/*let puzzle2 = new Puzzle(config2);
 let simple1 = new Puzzle(simple);
 let big = new Puzzle(bigger);
-let wappen = new Puzzle(wappentier);
+let wappen = new Puzzle(wappentier);*/

@@ -11,57 +11,39 @@ function deep_copy(obj) {
 class Puzzle {
     
     /**
-     * Checks the given config for errors.
+     * Checks the given constraints for errors.
      * Returns an array of Error objects if errors were found and undefined otherwise.
      *
-     * @param config
+     * @param constraints
      */
-    static error_config(config) {
+    error_constraints(constraints) {
 
         let errors = [];
 
-        let check_positive_number = (prop) => {
-            if (!config.hasOwnProperty(prop)) {
-                return new Error('Property ' + prop + ' is missing.');
-            }
-
-            if (typeof config[prop] !== 'number') {
-                let converted = parseInt(config[prop]);
-                if (isNaN(converted)) {
-                    return new Error('Property ' + prop + ' is not valid number.');
-                }
-                config[prop] = converted;
-            }
-
-            if (config[prop] < 0) {
-                return new Error('Property ' + prop + ' needs to be greater than 0.');
-            }
-        };
-
         let check_array = (prop) => {
 
-            if (!config.hasOwnProperty(prop)) {
+            if (!constraints.hasOwnProperty(prop)) {
                 return new Error('Property ' + prop + ' is missing');
             }
 
-            if (!Array.isArray(config[prop])) {
+            if (!Array.isArray(constraints[prop])) {
                 return new Error('Property ' + prop + ' has to be an array');
             }
 
             let errors = [];
 
-            for (let i = 0; i < config[prop].length; i++) {
-                for (let j = 0; j < config[prop][i].length; j++) {
-                    if (typeof config[prop][i][j] !== 'number') {
-                        let converted = parseInt(config[prop][i]);
+            for (let i = 0; i < constraints[prop].length; i++) {
+                for (let j = 0; j < constraints[prop][i].length; j++) {
+                    if (typeof constraints[prop][i][j] !== 'number') {
+                        let converted = parseInt(constraints[prop][i]);
                         if (isNaN(converted)) {
                             errors.push(new Error('Value for property ' + prop + ' at index (' + i + ', ' + j + ') is not a valid number.'));
                         } else {
-                            config[prop][i][j] = converted;
+                            constraints[prop][i][j] = converted;
                         }
                     }
 
-                    if (config[prop][i][j] <= 0) {
+                    if (constraints[prop][i][j] <= 0) {
                         errors.push(new Error('Number of property ' + prop + ' at index (' + i + ', ' + j + ') has to be greater or equal to 0.'));
                     }
                 }
@@ -71,18 +53,7 @@ class Puzzle {
                 return errors;
         };
 
-        let ret = check_positive_number('width');
-        if (ret)
-            errors.push(ret);
-
-        ret = check_positive_number('height');
-        if (ret)
-            errors.push(ret);
-
-        if (errors.length > 0)
-            return errors;
-
-        ret = check_array('rows');
+        let ret = check_array('rows');
         if (ret)
             errors.concat(ret);
 
@@ -90,21 +61,21 @@ class Puzzle {
         if (ret)
             errors.concat(ret);
 
-        if (config.width !== config.columns.length) {
+        if (this.width !== constraints.columns.length) {
             errors.push(new Error('Properties width must be the same as the length of columns.'));
         } else {
-            for (let i = 0; i < config.width; i++) {
-                if (config.columns[i].reduce((prev, curr) => prev + curr) + config.columns[i].length - 1 > config.height) {
+            for (let i = 0; i < constraints.width; i++) {
+                if (constraints.columns[i].reduce((prev, curr) => prev + curr) + constraints.columns[i].length - 1 > constraints.height) {
                     errors.push(new Error('The numbers in column ' + i + ' are too large for the board.'));
                 }
             }
         }
 
-        if (config.height !== config.rows.length) {
+        if (this.height !== constraints.rows.length) {
             errors.push(new Error('Properties height must be the same as the length of rows.'));
         } else {
-            for (let i = 0; i < config.height; i++) {
-                if (config.rows[i].reduce((prev, curr) => prev + curr) + config.rows[i].length - 1 > config.width) {
+            for (let i = 0; i < constraints.height; i++) {
+                if (constraints.rows[i].reduce((prev, curr) => prev + curr) + constraints.rows[i].length - 1 > constraints.width) {
                     errors.push(new Error('The numbers in row ' + i + ' are too large for the board.'));
                 }
             }
@@ -114,16 +85,12 @@ class Puzzle {
             return errors;
     }
 
-    constructor(config, state) {
-        let errors = Puzzle.error_config(config);
-        if (errors)
-            throw errors;
+    constructor(width, height) {
+        if (!width || !height)
+            throw new Error('Width and height musst be supplied.');
 
-        this.width = config.width;
-        this.height = config.height;
-
-        this.rows = config.rows;
-        this.columns = config.columns;
+        this.width = width;
+        this.height = height;
 
         /*this.solution = ["...#####..",
                          ".########.",
@@ -137,47 +104,56 @@ class Puzzle {
                          ".#######.."];*/
 
         this.solution = ['.#####................######..',
-'##.##..................##..##.',
-'#..#....................##..##',
-'#..##....................#...#',
-'#...#....................#...#',
-'#....##.................##...#',
-'##....#####.#######.#####....#',
-'.###.....##############....###',
-'.#############################',
-'..###########################.',
-'....########################..',
-'.....#####################....',
-'..###...###############...###.',
-'#######..#############..######',
-'###....#..####...####..#....##',
-'##.######..###...###..######.#',
-'##########..##...##..#########',
-'.#####.##...##...##...##.####.',
-'.......##.#..#...#..#.##......',
-'.......#####.#...#.#####......',
-'.......#####.#...#.#####......',
-'.......#######...######.......',
-'........#####.....#####.......',
-'.........####.....####........',
-'.........####.....####........',
-'.........###.......###........',
-'..........##.......###........',
-'..........#.........#.........',
-'..........###########.........',
-'.........###.......###........',
-'.........#...........#........',
-'.........#..##...##..#........',
-'.........##.##...##.##........',
-'.........##.........##........',
-'..........##..###..##.........',
-'#..........#########.........#',
-'##...........#####..........##',
-'####......................####',
-'#######................#######',
-'##########..........##########'];
+                        '##.##..................##..##.',
+                        '#..#....................##..##',
+                        '#..##....................#...#',
+                        '#...#....................#...#',
+                        '#....##.................##...#',
+                        '##....#####.#######.#####....#',
+                        '.###.....##############....###',
+                        '.#############################',
+                        '..###########################.',
+                        '....########################..',
+                        '.....#####################....',
+                        '..###...###############...###.',
+                        '#######..#############..######',
+                        '###....#..####...####..#....##',
+                        '##.######..###...###..######.#',
+                        '##########..##...##..#########',
+                        '.#####.##...##...##...##.####.',
+                        '.......##.#..#...#..#.##......',
+                        '.......#####.#...#.#####......',
+                        '.......#####.#...#.#####......',
+                        '.......#######...######.......',
+                        '........#####.....#####.......',
+                        '.........####.....####........',
+                        '.........####.....####........',
+                        '.........###.......###........',
+                        '..........##.......###........',
+                        '..........#.........#.........',
+                        '..........###########.........',
+                        '.........###.......###........',
+                        '.........#...........#........',
+                        '.........#..##...##..#........',
+                        '.........##.##...##.##........',
+                        '.........##.........##........',
+                        '..........##..###..##.........',
+                        '#..........#########.........#',
+                        '##...........#####..........##',
+                        '####......................####',
+                        '#######................#######',
+                        '##########..........##########'];
         
         this.solution = this.solution.map(row => Util.stringToArray(row).map(block => block === '#' ? BLOCK : EMPTY));
+    }
+
+    set_constraints(constraints) {
+        let errors = this.error_constraints(constraints);
+        if (errors)
+            throw errors;
+
+        this.rows = constraints.rows;
+        this.columns = constraints.columns;
     }
 
     print(state) {
