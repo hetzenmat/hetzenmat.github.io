@@ -332,16 +332,16 @@ class Puzzle {
 
     solve() {
 
-        console.log('generating permutations');
+        console.log('Generating permutations.');
         this.generate_permutations();
 
         this.solutions = [];
         this.nodes = 0;
         this.maxRow = 0;
-        console.log('solving');
+        console.log('Solving.');
         this.dfs(-1, []);
 
-        console.log(this.solutions.length);
+        console.log('#Solutions: ' + this.solutions.length);
 
         this.solutions.forEach(s => {
             this.print(s);
