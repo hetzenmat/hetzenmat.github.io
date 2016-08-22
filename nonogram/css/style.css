@@ -26,11 +26,11 @@ html {
     font-family: 'Pagella', serif;
     text-align: justify;
     line-height: 2;
-    font-size: 25px;
+    font-size: 20px;
 }
 
 .content {
-    max-width: 45rem;
+    max-width: 40rem;
     margin: 0 auto;
 }
 
@@ -62,8 +62,8 @@ footer {
     text-align: center;
 }
 
-input {
-    font-size: 30px;
+input, select {
+    font-size: 20px;
     font-family: 'Pagella', serif;
 }
 
@@ -90,6 +90,6 @@ input[type='number'] {
     cursor: pointer;
 }
 
-/*#grid tr:hover {
-    background: black !important;
-}*/
+#button-previous-solution, #button-next-solution, #solution-text {
+    display: none;
+}

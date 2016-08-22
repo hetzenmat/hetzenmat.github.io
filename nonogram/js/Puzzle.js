@@ -1,15 +1,14 @@
 'use strict';
 
-const BLOCK = 1; //Symbol('BLOCK');
-const EMPTY = 0; //Symbol('EMPTY');
-
-// TODO
-function deep_copy(obj) {
-    return JSON.parse(JSON.stringify(obj));
-}
+const BLOCK = Symbol('BLOCK');
+const EMPTY = Symbol('EMPTY');
 
 class Puzzle {
     
+    static deep_copy_state(state) {
+        return state.map(row => row.map(i => i));
+    }
+
     /**
      * Checks the given constraints for errors.
      * Returns an array of Error objects if errors were found and undefined otherwise.
@@ -91,60 +90,6 @@ class Puzzle {
 
         this.width = width;
         this.height = height;
-
-        /*this.solution = ["...#####..",
-                         ".########.",
-                         "##..######",
-                         "#....##..#",
-                         "#..#.#....",
-                         "##..##.#..",
-                         "#######..#",
-                         "##########",
-                         "#########.",
-                         ".#######.."];*/
-
-        this.solution = ['.#####................######..',
-                        '##.##..................##..##.',
-                        '#..#....................##..##',
-                        '#..##....................#...#',
-                        '#...#....................#...#',
-                        '#....##.................##...#',
-                        '##....#####.#######.#####....#',
-                        '.###.....##############....###',
-                        '.#############################',
-                        '..###########################.',
-                        '....########################..',
-                        '.....#####################....',
-                        '..###...###############...###.',
-                        '#######..#############..######',
-                        '###....#..####...####..#....##',
-                        '##.######..###...###..######.#',
-                        '##########..##...##..#########',
-                        '.#####.##...##...##...##.####.',
-                        '.......##.#..#...#..#.##......',
-                        '.......#####.#...#.#####......',
-                        '.......#####.#...#.#####......',
-                        '.......#######...######.......',
-                        '........#####.....#####.......',
-                        '.........####.....####........',
-                        '.........####.....####........',
-                        '.........###.......###........',
-                        '..........##.......###........',
-                        '..........#.........#.........',
-                        '..........###########.........',
-                        '.........###.......###........',
-                        '.........#...........#........',
-                        '.........#..##...##..#........',
-                        '.........##.##...##.##........',
-                        '.........##.........##........',
-                        '..........##..###..##.........',
-                        '#..........#########.........#',
-                        '##...........#####..........##',
-                        '####......................####',
-                        '#######................#######',
-                        '##########..........##########'];
-        
-        this.solution = this.solution.map(row => Util.stringToArray(row).map(block => block === '#' ? BLOCK : EMPTY));
     }
 
     set_constraints(constraints) {
@@ -301,9 +246,14 @@ class Puzzle {
     dfs(row_index, state) {
 
         this.nodes += 1;
+
+        // currently there are the most correct rows
         if (row_index > this.maxRow) {
             console.log('max row: ' + row_index + '\nnodes: ' + this.nodes);
             this.maxRow = row_index;
+
+            if (this.processCallback)
+                this.processCallback(state);
         }
 
         if (!this.validate(state)) {
@@ -311,14 +261,14 @@ class Puzzle {
         }
 
         if (row_index + 1 === this.height) {
-            this.solutions.push(deep_copy(state));
+            this.solutions.push(Puzzle.deep_copy_state(state));
             return;
         }
 
         let permutation_index = 0;
         while (true) {
 
-            let next_height_state = deep_copy(state);
+            let next_height_state = Puzzle.deep_copy_state(state);
             next_height_state.push(this.row_permutations[row_index + 1][permutation_index]);
 
             this.dfs(row_index + 1, next_height_state);
@@ -330,7 +280,10 @@ class Puzzle {
         }
     }
 
-    solve() {
+    solve(processCallback) {
+
+        if (processCallback)
+            this.processCallback = processCallback;
 
         console.log('Generating permutations.');
         this.generate_permutations();
