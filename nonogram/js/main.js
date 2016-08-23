@@ -200,7 +200,7 @@ function clear_board() {
 
 function render_solution(solution) {
 
-    //UI.cells.forEach(cell => cell.style.background = 'white');
+    UI.cells.forEach(cell => cell.style.background = 'white');
 
     for (let i = 0; i < solution.length; i++) {
         for (let j = 0; j < solution[0].length; j++) {
@@ -217,10 +217,10 @@ function solve_nonogram() {
 
     puzzle.set_constraints(constraints);
     puzzle.solve((state) => {
-        render_solution(state);
+        //render_solution(state);
 
-        var now = new Date().getTime();
-        while(new Date().getTime() < now + 500){ /* do nothing */ } 
+        //var now = new Date().getTime();
+        //while(new Date().getTime() < now + 500){ /* do nothing */ } 
     });
 
     UI.solution_text.style.display = 'initial';
