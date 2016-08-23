@@ -237,7 +237,14 @@ class Puzzle {
                 return false;
             }
 
-            // TODO: check if the column can't be completed with the remaining blocks
+            // check if the column can't be completed with the remaining blocks
+            // TODO testing
+            let remaining_blocks = this.height - rows_completed;
+            if (column.slice(block_index).reduce((prev, curr) => prev + curr, 0) + 
+                column.slice(block_index).length - 1 > remaining_blocks) {
+                return false;
+            }
+
         }
 
         return true;
