@@ -9,8 +9,8 @@ let UI = {
     hover_background_color: '#b3b3b3'
 };
 
-let puzzle;
 let constraints;
+let solutions = [];
 
 function get_coords(id) {
     let coords = id.split('-');
@@ -55,14 +55,14 @@ function onclick_column_constraint(cell) {
 }
 
 function update_table() {
-
     let em = 1.5;
     while (UI.cells[0].offsetHeight !== UI.cells[0].offsetWidth) {
         let cell_width = UI.cells[0].offsetWidth;
-        UI.cells.forEach(cell => {
-            cell.style.height = cell_width + 'px';
-            cell.style.fontSize = em + 'em';
-        });
+        for (let i = 0; i < UI.cells.length; i++) {
+            UI.cells[i].style.height = cell_width + 'px';
+            UI.cells[i].style.fontSize = em + 'em';
+        }
+
         em -= 0.1;
     }
 }
@@ -76,7 +76,7 @@ function create_table() {
     for (let k = 0; k < max_constraints_column; k++) {
         html += '<tr>\n';
         html += '<td></td>\n'.repeat(max_constraints_row);
-        for (let i = 0; i < puzzle.width; i++) {
+        for (let i = 0; i < constraints.width; i++) {
 
             let index = k - max_constraints_column + constraints.columns[i].length;
             let value;
@@ -95,7 +95,7 @@ function create_table() {
         html += '</tr>\n';
     }
     
-    for (let i = 0; i < puzzle.height; i++) {
+    for (let i = 0; i < constraints.height; i++) {
         html += '</tr>\n';
         //html += '<td></td>\n'.repeat(max_constraints_column);
         for (let k = 0; k < max_constraints_row; k++) {
@@ -114,7 +114,7 @@ function create_table() {
                       + 'data-rows="' + i + '">' + value + '</td>\n';
         }
         
-        for (let j = 0; j < puzzle.width; j++) {
+        for (let j = 0; j < constraints.width; j++) {
             html += '<td id="' + i + '-' + j + '" class="row-' + i + ' column-' + j + '"></td>\n';
         }
         html += '</tr>\n';
@@ -123,13 +123,13 @@ function create_table() {
     UI.grid.innerHTML = html;
     UI.cells = document.querySelectorAll('#grid td');
 
-    UI.column_elements = new Array(puzzle.width);
-    for (let i = 0; i < puzzle.width; i++) {
+    UI.column_elements = new Array(constraints.width);
+    for (let i = 0; i < constraints.width; i++) {
         UI.column_elements[i] = document.getElementsByClassName('column-' + i);
     }
 
-    UI.row_elements = new Array(puzzle.height);
-    for (let i = 0; i < puzzle.height; i++) {
+    UI.row_elements = new Array(constraints.height);
+    for (let i = 0; i < constraints.height; i++) {
         UI.row_elements[i] = document.getElementsByClassName('row-' + i);
     }
 
@@ -140,9 +140,9 @@ function create_nonogram() {
     let width = +UI.input_width.value;
     let height = +UI.input_height.value;
 
-    puzzle = new Puzzle(width, height);
-
     constraints = {
+        width: width,
+        height: height,
         rows: new Array(height),
         columns: new Array(width)
     };
@@ -172,8 +172,6 @@ function document_ready() {
 
         let example = examples[UI.select_nonogram.value];
 
-        puzzle = new Puzzle(example.columns.length, example.rows.length);
-
         constraints = example;
         create_table();
     };
@@ -200,7 +198,9 @@ function clear_board() {
 
 function render_solution(solution) {
 
-    UI.cells.forEach(cell => cell.style.background = 'white');
+    for (let i = 0; i < UI.cells.length; i++) {
+        UI.cells[i].style.background = 'white';
+    }
 
     for (let i = 0; i < solution.length; i++) {
         for (let j = 0; j < solution[0].length; j++) {
@@ -213,27 +213,47 @@ function render_solution(solution) {
 
 function solve_nonogram() {
 
-    // TODO: embed solver in WebWorker to update the finished rows and maintain a usable UI
+    let solverWorker = new Worker('js/solver_worker.js');
+    solverWorker.onmessage = function(event) {
+        switch (event.data.type) {
+            case 'progress':
+                render_solution(event.data.state);
+                break;
 
-    puzzle.set_constraints(constraints);
-    puzzle.solve((state) => {
-        //render_solution(state);
+            case 'solutions':
+                solutions = event.data.solutions;
+                UI.solution_text.style.display = 'initial';
+                if (solutions.length === 0) {
+                    UI.solution_text.innerHTML = 'No Solution found.';
+                } else if (solutions.length === 1) {
+                    render_solution(solutions[0]);
+                } else {
+                    render_solution(solutions[0]);
+                    UI.current_solution = 0;
+                    UI.button_next_solution.style.display = 'initial';
+                    UI.button_previous_solution.style.display = 'initial';
+                }
+                break;
 
-        //var now = new Date().getTime();
-        //while(new Date().getTime() < now + 500){ /* do nothing */ } 
+            case 'log':
+                console.log(event.data.message);
+                break;
+        }
+    };
+    
+    solverWorker.onerror = function(event){
+        throw new Error(event.message + " (" + event.filename + ":" + event.lineno + ")");
+    };
+
+    solverWorker.postMessage({
+        type: 'constraints',
+        constraints: constraints
     });
 
-    UI.solution_text.style.display = 'initial';
-    if (puzzle.solutions.length === 0) {
-        UI.solution_text.innerHTML = 'No Solution found.';
-    } else if (puzzle.solutions.length === 1) {
-        render_solution(puzzle.solutions[0]);
-    } else {
-        render_solution(puzzle.solutions[0]);
-        UI.current_solution = 0;
-        UI.button_next_solution.style.display = 'initial';
-        UI.button_previous_solution.style.display = 'initial';
-    }
+    solverWorker.postMessage({
+        type: 'start',
+        callback: true
+    });
 }
 
 // http://www.janko.at/Raetsel/Nonogramme/1622.a.htm

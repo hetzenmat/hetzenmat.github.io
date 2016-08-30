@@ -1,7 +1,10 @@
 'use strict';
 
-const BLOCK = Symbol('BLOCK');
-const EMPTY = Symbol('EMPTY');
+//const BLOCK = Symbol('BLOCK');
+//const EMPTY = Symbol('EMPTY');
+
+const BLOCK = 1;
+const EMPTY = 0;
 
 class Puzzle {
     
@@ -14,7 +17,6 @@ class Puzzle {
      * Returns an array of Error objects if errors were found and undefined otherwise.
      *
      * @param constraints
-     */
     error_constraints(constraints) {
 
         let errors = [];
@@ -82,23 +84,20 @@ class Puzzle {
 
         if (errors.length > 0)
             return errors;
-    }
+    }*/
 
-    constructor(width, height) {
-        if (!width || !height)
-            throw new Error('Width and height musst be supplied.');
+    constructor(constraints) {
 
-        this.width = width;
-        this.height = height;
-    }
-
-    set_constraints(constraints) {
-        let errors = this.error_constraints(constraints);
-        if (errors)
-            throw errors;
-
-        this.rows = constraints.rows;
+        this.width   = constraints.width;
+        this.height  = constraints.height;
+        this.rows    = constraints.rows;
         this.columns = constraints.columns;
+
+        this.log = console.log;
+    }
+
+    set_logger(log) {
+        this.log = log;
     }
 
     print(state) {
@@ -131,11 +130,11 @@ class Puzzle {
             output += '\n';
         }
 
-        console.log(output);
+        this.log(output);
     }
 
     print_row(row) {
-        console.log(row.reduce((prev, curr) => {
+        this.log(row.reduce((prev, curr) => {
             if (curr === BLOCK)
                 return prev + '#';
             return prev + '.';
@@ -256,11 +255,14 @@ class Puzzle {
 
         // currently there are the most correct rows
         if (row_index > this.maxRow) {
-            console.log('max row: ' + row_index + '\nnodes: ' + this.nodes);
+            this.log('max row: ' + row_index + '\nnodes: ' + this.nodes);
             this.maxRow = row_index;
 
-            if (this.processCallback)
+            if (this.processCallback) {
                 this.processCallback(state);
+                var now = new Date().getTime();
+                while(new Date().getTime() < now + 500){ /* do nothing */ } 
+            }
         }
 
         if (!this.validate(state)) {
@@ -289,19 +291,18 @@ class Puzzle {
 
     solve(processCallback) {
 
-        if (processCallback)
-            this.processCallback = processCallback;
+        this.processCallback = processCallback;
 
-        console.log('Generating permutations.');
+        this.log('Generating permutations.');
         this.generate_permutations();
 
         this.solutions = [];
         this.nodes = 0;
         this.maxRow = 0;
-        console.log('Solving.');
+        this.log('Solving.');
         this.dfs(-1, []);
 
-        console.log('#Solutions: ' + this.solutions.length);
+        this.log('#Solutions: ' + this.solutions.length);
 
         this.solutions.forEach(s => {
             this.print(s);
