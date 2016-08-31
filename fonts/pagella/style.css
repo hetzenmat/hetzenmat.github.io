@@ -1,0 +1,23 @@
+@font-face {
+    font-family: 'Pagella';
+    src: url('./texgyrepagella-regular.otf');
+}
+
+@font-face {
+    font-family: 'Pagella';
+    src: url('./texgyrepagella-bold.otf');
+    font-weight: bold;
+}
+
+@font-face {
+    font-family: 'Pagella';
+    src: url('./texgyrepagella-italic.otf');
+    font-style: italic;
+}
+
+@font-face {
+    font-family: 'Pagella';
+    src: url('./texgyrepagella-bolditalic.otf');
+    font-weight: bold;
+    font-style: italic;
+}

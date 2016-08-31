@@ -1,27 +1,3 @@
-@font-face {
-    font-family: 'Pagella';
-    src: url('../../fonts/pagella/texgyrepagella-regular.otf');
-}
-
-@font-face {
-    font-family: 'Pagella';
-    src: url('../../fonts/pagella/texgyrepagella-bold.otf');
-    font-weight: bold;
-}
-
-@font-face {
-    font-family: 'Pagella';
-    src: url('../../fonts/pagella/texgyrepagella-italic.otf');
-    font-style: italic;
-}
-
-@font-face {
-    font-family: 'Pagella';
-    src: url('../../fonts/pagella/texgyrepagella-bolditalic.otf');
-    font-weight: bold;
-    font-style: italic;
-}
-
 html {
     font-family: 'Pagella', serif;
     text-align: justify;
@@ -89,7 +65,10 @@ input[type='number'] {
 #grid td[class^='constraint-']:hover {
     cursor: pointer;
 }
+#grid td[solving]:hover {
+    cursor: not-allowed;
+}
 
-#button-previous-solution, #button-next-solution, #solution-text {
+#button-previous-solution, #button-next-solution {
     display: none;
 }

@@ -93,7 +93,7 @@ class Puzzle {
         this.rows    = constraints.rows;
         this.columns = constraints.columns;
 
-        this.log = console.log;
+        this.log = console.log.bind(console);
     }
 
     set_logger(log) {
@@ -203,6 +203,17 @@ class Puzzle {
         for (let i = 0; i < this.width; i++) {
             let column = this.columns[i];
 
+            // edge case when there are no blocks in the column
+            if (column.length === 1 && column[0] === 0) {
+                for (let j = 0; j < rows_completed; j++) {
+                    if (state[j][i] === BLOCK)
+                        return false;
+                }
+
+                // column is valid
+                continue;
+            }
+
             let in_block = false;
             let num_blocks;
             let block_index = 0;
@@ -237,7 +248,6 @@ class Puzzle {
             }
 
             // check if the column can't be completed with the remaining blocks
-            // TODO testing
             let remaining_blocks = this.height - rows_completed;
             if (column.slice(block_index).reduce((prev, curr) => prev + curr, 0) + 
                 column.slice(block_index).length - 1 > remaining_blocks) {
@@ -261,7 +271,7 @@ class Puzzle {
             if (this.processCallback) {
                 this.processCallback(state);
                 var now = new Date().getTime();
-                while(new Date().getTime() < now + 500){ /* do nothing */ } 
+                while(new Date().getTime() < now + 100){ /* do nothing */ } 
             }
         }
 
@@ -297,7 +307,9 @@ class Puzzle {
         this.generate_permutations();
 
         this.solutions = [];
-        this.nodes = 0;
+        
+        // start with -1 because the first call to dfs isn't really a valid state
+        this.nodes = -1;
         this.maxRow = 0;
         this.log('Solving.');
         this.dfs(-1, []);
