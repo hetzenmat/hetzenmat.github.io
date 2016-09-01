@@ -251,6 +251,7 @@ function document_ready() {
         let example = JSON.parse(JSON.stringify(examples[UI.select_nonogram.value]));
 
         constraints = example;
+        reset_solutions();
         create_table();
     };
 

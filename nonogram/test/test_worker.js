@@ -16,54 +16,66 @@ function run_tests() {
 		test_case(count, name);
 		count++;
 	}
+	postMessage({
+		type: 'finished'
+	});
+}
+
+function append_text(text) {
+	postMessage({
+		type: 'append',
+		text: text
+	});
 }
 
 function test_case(count, name) {
-	postMessage(`<h2> ${count}. ${examples[name].width} x ${examples[name].height} ${name} </h2>`);
-	postMessage(`<p>Solving . . .</p>`);
+	append_text(`<h2> ${count}. ${examples[name].width} x ${examples[name].height} ${name} </h2>`);
+	append_text(`<p>Solving . . .</p>`);
 
 	let start = new Date();
 
-	let puzzle = new Puzzle(examples[name].width, examples[name].height);
-	puzzle.set_constraints(examples[name]);
+	let puzzle = new Puzzle(examples[name]);
 	puzzle.solve();
 	let duration = (new Date() - start) / 1000;
 
-	postMessage(`<p>Took ${duration} seconds</p>`);
+	append_text(`<p>Took ${duration} seconds</p>`);
 
 	let passed = true;
 
-	if (puzzle.solutions.length !== solutions[name].count) {
-		postMessage(`<p>Number of solutions are not equal (${solutions[name].count} should be ${puzzle.solutions.length})</p>`);
+	if (puzzle.solutions.length !== solutions[name].length) {
+		append_text(`<p>Number of solutions are not equal (${solutions[name].count} should be ${puzzle.solutions.length})</p>`);
 		passed = false;
 	} else {
 		for (let i = 0; i < puzzle.solutions.length; i++) {
 
 			let solution_passed = false;
-			for (let j = 0; j < solutions[name].count; j++) {
+			for (let j = 0; j < solutions[name].length; j++) {
 				if (compare_states(puzzle.solutions[i], solutions[name][j]))
 					solution_passed = true;
 			}
 
 			if (solution_passed) {
-				postMessage(`<p>Solution ${i + 1} passed.</p>`);
+				append_text(`<p>Solution ${i + 1} passed.</p>`);
 			} else {
-				postMessage(`<p>Solution ${i + 1} did not pass.</p>`);
+				append_text(`<p>Solution ${i + 1} did not pass.</p>`);
 				passed = false;
 			}
 		}
 	}
 
 	if (passed) {
-		postMessage('<p style="font-weight: bold; color: green;">Testcase passed!</p>');
+		append_text('<p style="font-weight: bold; color: green;">Testcase passed!</p>');
+
 	} else {
-		postMessage('<p style="font-weight: bold; color: red;">Testcase did not pass!</p>');
+		append_text('<p style="font-weight: bold; color: red;">Testcase did not pass!</p>');
 	}
 
-	postMessage('<hr>');
+	postMessage({
+		type: 'statistics',
+		passed: passed
+	});
 
-	/*var d = new Date();
-	while ((new Date() - d) < 2000) {}*/
+	append_text('<hr>');
 }
 
 function compare_states(state1, state2) {
