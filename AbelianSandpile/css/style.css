@@ -1,0 +1,18 @@
+svg {
+	width: 75%;
+	height: auto;
+}
+
+input[type="button"] {
+	cursor: pointer;
+	border: none;
+	text-decoration: none;
+	font-size: 1em;
+	padding: 10px 20px;
+	font-family: 'Pagella', serif;
+	background-color: #e7e7e7;
+}
+
+.div-table div {
+	vertical-align: middle;
+}
