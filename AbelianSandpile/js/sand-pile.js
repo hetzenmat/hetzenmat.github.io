@@ -17,6 +17,11 @@ onmessage = (event) => {
 let max_size = 0;
 let map = {};
 let spills = [];
+let COLORS = [
+	Math.floor(255 * 2 / 3),
+	Math.floor(255 * 1 / 3),
+	0
+];
 
 map.set = function(x, y, value) {
 	this[[x, y]] = value;
@@ -53,7 +58,7 @@ function send_svg() {
 
 			let value = map.get(i, j);
 			if (value > 0) {
-				let color = Array(3).fill(Math.floor(255 * (1 - value / 3))).join(',');
+				let color = Array(3).fill(COLORS[value - 1]).join(',');
 				str += `<rect x="${i}" y="${j}" width="1" height="1" style="fill:rgb(${color})" />\n`;
 			}
 		}
