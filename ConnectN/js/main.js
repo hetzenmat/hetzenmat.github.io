@@ -1,10 +1,12 @@
+'use strict';
+
 $(() => {
 
     var input_n =    $('#input_n');
     var input_rows = $('#input_rows');
     var input_cols = $('#input_cols');
 
-    var N, rows, cols, disk_size, game_running, can_make_move, computer_color;
+    var N, rows, cols, disk_size, gameRunning, can_make_move, computerColor;
     var board;
 
     var Size = {
@@ -27,7 +29,7 @@ $(() => {
         N =    +input_n.val();
         rows = +input_rows.val();
         cols = +input_cols.val();
-        game_running = true;
+        gameRunning = true;
         can_make_move = true;
 
         var checkedValue = $('input[name="game-type"]:checked').val();
@@ -37,10 +39,10 @@ $(() => {
         } else if (checkedValue === $('#radio-computer').val()) {
             board = Board.new(rows, cols, N, Board.GameType.AgainstComputer, 0);
             if ($('#computer-begins').is(':checked')) {
-                computer_color = 0;
+                computerColor = 0;
                 board.currentPlayer = 1;
             } else {
-                computer_color = 1;
+                computerColor = 1;
             }
         } else {
             throw new Error('No checked value found.');
@@ -52,7 +54,7 @@ $(() => {
         }
         setBoardSize();
 
-        if (computer_color === 0)
+        if (computerColor === 0)
             computerMove();
     }
 
@@ -60,7 +62,7 @@ $(() => {
 
     $(document).on('mouseenter', '.board-column', function() {
 
-        if (!game_running)
+        if (!gameRunning)
             return;
 
         var elem = $('<div id="move-indicator" class="disk disk-player' + board.currentPlayer + ' move"></div>');
@@ -116,10 +118,13 @@ $(() => {
     }
 
     function computerMove() {
-        move = randomMove(board, Board.getNextPlayer(board));
+        board.currentPlayer = Board.getNextPlayer(board);
+        let column = calculateMove(board);
+        let row = Board.move(board, board.currentPlayer, column);
+        board.currentPlayer = Board.getNextPlayer(board);
         
         // element to be inserted
-        var elem = $('<div class="disk disk-player' + computer_color + '"></div>');
+        var elem = $('<div class="disk disk-player' + computerColor + '"></div>');
 
         // set the size of the circle
         elem.css({
@@ -127,13 +132,13 @@ $(() => {
             'height' : Size.width + 'px'
         });
 
-        $('.board-column[data-id=' + move.column + ']').prepend(elem);
-        elem.data('row', board.rows - 1 - move.row);
-        elem.attr('id', 'pos-' + move.row + '-' + move.column);
-        elem.animate({'top' : ((board.rows - 1 - move.row) * Size.width + $('#board').position().top) + 'px'}, 1000, 'easeOutBounce');
+        $('.board-column[data-id=' + column + ']').prepend(elem);
+        elem.data('row', board.rows - 1 - row);
+        elem.attr('id', 'pos-' + row + '-' + column);
+        elem.animate({'top' : ((board.rows - 1 - row) * Size.width + $('#board').position().top) + 'px'}, 1000, 'easeOutBounce');
     
         if (Board.isGameOver(board)) {
-            game_running = false;
+            gameRunning = false;
             $('#move-indicator').remove();
         } else {
             can_make_move = true;
@@ -142,7 +147,7 @@ $(() => {
 
     $(document).on('click', '.board-column', function() {
 
-        if (!game_running || !can_make_move)
+        if (!gameRunning || !can_make_move)
             return;
 
         can_make_move = false;
@@ -167,11 +172,11 @@ $(() => {
 
         var row = Board.move(board, board.currentPlayer, column);
         if (Board.isGameOver(board)) {
-            game_running = false;
+            gameRunning = false;
             $('#move-indicator').remove();
         }
 
-        if (game_running) {
+        if (gameRunning) {
             if (board.gameType === Board.GameType.AgainstPlayer) {
                 $('#move-indicator').removeClass('disk-player' + board.currentPlayer);
                 board.currentPlayer = Board.getNextPlayer(board);
@@ -210,7 +215,7 @@ $(() => {
             } else if (board.gameType === Board.GameType.AgainstComputer) {
                 if (player0won || player1won) {
                     won_color = player0won ? 0 : 1;
-                    if (won_color === computer_color) {
+                    if (won_color === computerColor) {
                         alert('Computer has won!');
                         return;
                     } else {
@@ -232,5 +237,5 @@ $(() => {
     };
 
     newGame();
-    
+    console.log(board);
 });
