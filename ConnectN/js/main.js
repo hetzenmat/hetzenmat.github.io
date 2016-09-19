@@ -118,6 +118,8 @@ $(() => {
     }
 
     function computerMove() {
+        $('#move-indicator').hide();
+
         board.currentPlayer = Board.getNextPlayer(board);
         let column = calculateMove(board);
         let row = Board.move(board, board.currentPlayer, column);
@@ -141,7 +143,7 @@ $(() => {
             gameRunning = false;
             $('#move-indicator').remove();
         } else {
-            can_make_move = true;
+            $('#move-indicator').show();
         }
     }
 
@@ -214,7 +216,7 @@ $(() => {
                 }
             } else if (board.gameType === Board.GameType.AgainstComputer) {
                 if (player0won || player1won) {
-                    won_color = player0won ? 0 : 1;
+                    let won_color = player0won ? 0 : 1;
                     if (won_color === computerColor) {
                         alert('Computer has won!');
                         return;
@@ -229,6 +231,8 @@ $(() => {
                 }
             }
         });
+
+        can_make_move = true;
     });
 
     window.onresize = () => {

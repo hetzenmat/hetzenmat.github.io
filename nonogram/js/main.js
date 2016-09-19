@@ -12,6 +12,7 @@ let UI = {
 let constraints;
 let solutions = [];
 let solving;
+let solverWorker;
 
 const SPLITTER = [
     ',',
@@ -184,6 +185,10 @@ function reset_solutions() {
 
 function create_nonogram() {
 
+    if (solverWorker instanceof Worker)
+        solverWorker.terminate();
+
+    end_solving();
     solving = false;
 
     let width = +UI.input_width.value;
@@ -235,7 +240,10 @@ function document_ready() {
     UI.grid = document.getElementById('grid');
 
     UI.button_create = document.getElementById('button-create');
-    UI.button_create.onclick = create_nonogram;
+    UI.button_create.onclick = () => {
+        UI.create_modal.style.display = 'none';
+        create_nonogram();
+    };
 
     UI.input_width = document.getElementById('input-width');
     UI.input_height = document.getElementById('input-height');
@@ -247,6 +255,14 @@ function document_ready() {
 
     UI.button_load = document.getElementById('button-load');
     UI.button_load.onclick = () => {
+
+        UI.create_modal.style.display = 'none';
+
+        if (solverWorker instanceof Worker)
+            solverWorker.terminate();
+
+        solving = false;
+        end_solving();
 
         let example = JSON.parse(JSON.stringify(examples[UI.select_nonogram.value]));
 
@@ -280,12 +296,105 @@ function document_ready() {
 
     UI.checkbox_show_progress = document.getElementById('checkbox-show-progress');
 
-    create_nonogram();
 
-    window.onresize = function() {
+    UI.button_import = document.getElementById('button-import');
+    UI.button_import.onclick = () => {
+        let result = prompt('Paste configuration here:');
+        try {
+            result = JSON.parse(result);
+        } catch (error) {
+            alert('Wrong format.');
+            return;
+        }
+
+        let props = [
+            'width',
+            'height',
+            'rows',
+            'columns'
+        ];
+
+        if (!props.every(p => result.hasOwnProperty(p))) {
+            alert('Property is missing.');
+            return;
+        }
+
+        if (typeof result.width !== 'number') {
+            alert('Width must be a number.');
+            return;
+        }
+        if (typeof result.height !== 'number') {
+            alert('Height must be a number.');
+            return;
+        }
+        if (!Array.isArray(result.rows)) {
+            alert('Rows must be an array.');
+            return;
+        }
+        if (!Array.isArray(result.columns)) {
+            alert('Columns must be an array');
+            return;
+        }
+
+
+        let prevWidth = constraints.width;
+        let prevHeight = constraints.height;
+
+        constraints.width = result.width;
+        constraints.height = result.height;
+
+        for (let i = 0; i < result.rows.length; i++) {
+            if (!check_constraints('row', result.rows[i])) {
+               alert('Row ' + (i + 1) + ' is not valid.');
+               constraints.width = prevWidth;
+               constraints.height = prevHeight;
+               return;
+            }
+        }
+        for (let i = 0; i < result.columns.length; i++) {
+            if (!check_constraints('column', result.columns[i])) {
+                alert('Column ' + (i + 1) + ' is not valid.');
+                constraints.width = prevWidth;
+                constraints.height = prevHeight;
+                return;
+            }
+        }
+
+        constraints.rows = result.rows;
+        constraints.columns = result.columns;
+
+        create_table();
+    };
+    UI.button_export = document.getElementById('button-export');
+    UI.button_export.onclick = () => {
+        prompt('Copy the configuration and save it', JSON.stringify(constraints));
+    };
+
+    /*
+     * Create Modal
+     */
+    UI.create_modal = document.getElementById('create-modal');
+    UI.button_open_modal = document.getElementById('button-open-modal');
+    UI.button_open_modal.onclick = () => {
+        UI.create_modal.style.display = 'block';
+    };
+    let span = document.querySelector('#create-modal .close');
+    span.onclick = () => {
+        UI.create_modal.style.display = 'none';
+    };
+
+    window.onclick = event => {
+        if (event.target === UI.create_modal) {
+            UI.create_modal.style.display = "none";
+        }
+    };
+
+    window.onresize = () => {
         clearTimeout(UI.resize_timeout);
         UI.resize_timeout = setTimeout(update_table, 100);
     };
+
+    create_nonogram();
 }
 
 function render_solution(solution) {
@@ -312,15 +421,9 @@ function solve_nonogram() {
 
     solving = true;
 
-    // disable clicking on constraints
-    let nodeList = document.querySelectorAll('#grid td[class^="constraint-"]');
-    for (let i = 0; i < nodeList.length; i++) {
-        nodeList[i].setAttribute('solving', '');
-    }
+    begin_solving();
 
-    UI.solution_text.innerHTML = 'Thinking . . .'
-
-    let solverWorker = new Worker('js/solver_worker.js');
+    solverWorker = new Worker('js/solver_worker.js');
     solverWorker.onmessage = function(event) {
         switch (event.data.type) {
             case 'progress':
@@ -343,10 +446,7 @@ function solve_nonogram() {
                     UI.button_previous_solution.style.display = 'initial';
                 }
 
-                for (let i = 0; i < nodeList.length; i++) {
-                    nodeList[i].removeAttribute('solving');
-                }
-
+                end_solving();
                 solving = false;
 
                 break;
@@ -372,15 +472,24 @@ function solve_nonogram() {
     });
 }
 
-// http://www.janko.at/Raetsel/Nonogramme/1622.a.htm
+function begin_solving() {
+    // disable clicking on constraints
+    let nodeList = document.querySelectorAll('#grid td[class^="constraint-"]');
+    for (let i = 0; i < nodeList.length; i++) {
+        nodeList[i].setAttribute('solving', '');
+    }
+    UI.button_solve.setAttribute('disabled', 'true');
 
-/*
- * Algorithm:
- * 
- * 1. pre-calculate all possible permutations of the rows
- * 2. DFS:
- *    2.1 move to the next permutation for the current row
- *    2.2 validate the columns
- *        valid partial solution -> proceed with DFS with next row
- *        not valid -> go to step 2.1
- */
+    UI.solution_text.innerHTML = 'Thinking . . .'
+}
+
+function end_solving() {
+    let nodeList = document.querySelectorAll('#grid td[class^="constraint-"]');
+    for (let i = 0; i < nodeList.length; i++) {
+        nodeList[i].removeAttribute('solving');
+    }
+    UI.button_solve.removeAttribute('disabled');
+    if (UI.solution_text.innerHTML.startsWith('Thinking')) {
+        UI.solution_text.innerHTML = '';
+    }
+}

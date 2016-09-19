@@ -25,7 +25,8 @@ input[type='number'] {
 #grid td[class^='constraint-']:hover {
     cursor: pointer;
 }
-#grid td[solving]:hover {
+
+#grid td[solving]:hover, input[type="button"][disabled]:hover {
     cursor: not-allowed;
 }
 
