@@ -1,0 +1,16 @@
+{
+    "compilerOptions": {
+        "noImplicitAny": true,
+        "removeComments": true,
+        "preserveConstEnums": true,
+        "outFile": "solver_worker.js",
+        "sourceMap": true,
+        "lib": [
+            "ES6",
+            "WebWorker"
+        ]
+    },
+    "files": [        
+        "solver_worker.ts"
+    ]
+}

@@ -1,0 +1,14 @@
+{
+    "compilerOptions": {
+        "noImplicitAny": true,
+        "removeComments": true,
+        "preserveConstEnums": true,
+        "outFile": "tsc.js",
+        "sourceMap": true
+    },
+    "files": [
+        "tests.ts",
+        "../examples.ts",
+        "solutions.ts"
+    ]
+}

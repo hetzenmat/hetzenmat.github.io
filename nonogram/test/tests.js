@@ -10,7 +10,7 @@ else
 let content_element;
 let statistics_element;
 let button_start_tests;
-let overall_cases, passed_cases;
+let overall_cases :n, passed_cases;
 
 function document_ready() {
 	content_element = document.getElementById('content');

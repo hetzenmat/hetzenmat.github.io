@@ -1,0 +1,18 @@
+{
+    "compilerOptions": {
+        "noImplicitAny": true,
+        "removeComments": true,
+        "preserveConstEnums": true,
+        "outFile": "test_worker.js",
+        "sourceMap": true,
+        "lib": [
+            "ES6",
+            "WebWorker"
+        ]
+    },
+    "files": [        
+        "test_worker.ts",
+        "../solutions.ts",
+        "../examples.ts"
+    ]
+}

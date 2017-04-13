@@ -1,0 +1,14 @@
+{
+    "compilerOptions": {
+        "noImplicitAny": true,
+        "removeComments": true,
+        "preserveConstEnums": true,
+        "outFile": "bundle.js",
+        "sourceMap": true
+    },
+    "files": [
+        "../examples.ts",
+        "main.ts",
+        "Puzzle.ts"
+    ]
+}
