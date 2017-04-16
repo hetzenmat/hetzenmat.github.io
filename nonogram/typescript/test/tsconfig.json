@@ -9,6 +9,7 @@
     "files": [
         "tests.ts",
         "../examples.ts",
-        "solutions.ts"
+        "solutions.ts",
+        "../types.ts"
     ]
 }

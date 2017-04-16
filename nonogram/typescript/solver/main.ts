@@ -1,18 +1,45 @@
-'use strict';
+/// <reference path="../examples.ts"/>
+/// <reference path="../types.ts"/>
+
+class UserInterface {
+    hover_background_color: string;
+    cells: NodeListOf<HTMLElement>;
+    grid: HTMLElement;
+    columnElements: HTMLCollectionOf<Element>[];
+    rowElements: HTMLCollectionOf<Element>[];
+    solutionText: HTMLElement;
+    buttonNextSolution: HTMLButtonElement;
+    buttonPreviousSolution: HTMLButtonElement;
+    inputWidth: HTMLInputElement;
+    inputHeight: HTMLInputElement;
+    buttonCreate: HTMLButtonElement;
+    createModal: HTMLElement;
+    buttonSolve: HTMLButtonElement;
+    selectNonogram: HTMLSelectElement;
+    buttonLoad: HTMLButtonElement;
+    checkboxShowProgress: HTMLInputElement;
+    buttonImport: HTMLButtonElement;
+    currentSolution: number;
+    buttonExport: HTMLButtonElement;
+    buttonOpenModal: HTMLButtonElement;
+    resizeTimeout: number;
+
+    constructor() {
+        this.hover_background_color = '#b3b3b3';
+    }
+}
+
+let UI = new UserInterface();
 
 if (document.readyState !== 'loading')
     document_ready();
 else
     document.addEventListener('DOMContentLoaded', document_ready);
 
-let UI = {
-    hover_background_color: '#b3b3b3'
-};
-
-let constraints;
-let solutions = [];
-let solving;
-let solverWorker;
+let constraints: Constraints;
+let solutions: number[][][];
+let solving: boolean;
+let solverWorker: Worker;
 
 const SPLITTER = [
     ',',
@@ -26,40 +53,40 @@ const SPLITTER = [
 
 const SPLITTER_REGEX = new RegExp(`(${SPLITTER.join('|')})+`, 'g');
 
-function mouseenter_constraint(type, cell) {
-     let elements = document.querySelectorAll('.constraint-' + type + '-' + cell.dataset[type]);
+function mouseenter_constraint(type: string, cell: HTMLElement) {
+     let elements = <NodeListOf<HTMLElement>>document.querySelectorAll('.constraint-' + type + '-' + cell.dataset[type]);
 
     for (let i = 0; i < elements.length; i++) {
         elements[i].style.background = UI.hover_background_color;
     }
 }
 
-function mouseleave_constraint(type, cell) {
-    let elements = document.querySelectorAll('.constraint-' + type + '-' + cell.dataset[type]);
+function mouseleave_constraint(type: string, cell: HTMLElement) {
+    let elements = <NodeListOf<HTMLElement>>document.querySelectorAll('.constraint-' + type + '-' + cell.dataset[type]);
 
     for (let i = 0; i < elements.length; i++) {
         elements[i].style.background = 'white';
     }
 }
 
-function onclick_row_constraint(cell) {
+function onclick_row_constraint(cell: HTMLElement) {
 
     if (solving)
         return;
 
     let row = +cell.dataset.rows;
 
-    let result = prompt('', constraints.rows[row].join(' '));
+    let userPrompt: string = prompt('', constraints.rows[row].join(' '));
 
-    if (!result)
+    if (!userPrompt)
         return;
 
     reset_solutions();
 
-    result = result.split(SPLITTER_REGEX).map(str => +str);
+    let result: false | number[] = userPrompt.split(SPLITTER_REGEX).map(str => +str);
     result = check_constraints('row', result);
 
-    if (!result) {
+    if (result === false) {
         alert('Constraints not valid.');
         return;
     }
@@ -68,24 +95,24 @@ function onclick_row_constraint(cell) {
     create_table();
 }
 
-function onclick_column_constraint(cell) {
+function onclick_column_constraint(cell: HTMLElement) {
 
     if (solving)
         return;
 
     let column = +cell.dataset.columns;
 
-    let result = prompt('', constraints.columns[column].join(' '));
+    let userPrompt = prompt('', constraints.columns[column].join(' '));
 
-    if (!result)
+    if (!userPrompt)
         return;
 
     reset_solutions();
 
-    result = result.split(SPLITTER_REGEX).map(str => +str);
+    let result: false | number[] = userPrompt.split(SPLITTER_REGEX).map(str => +str);
     result = check_constraints('column', result);
 
-    if (!result) {
+    if (result === false) {
         alert('Constraints not valid.');
         return;
     }
@@ -160,16 +187,16 @@ function create_table() {
     }
 
     UI.grid.innerHTML = html;
-    UI.cells = document.querySelectorAll('#grid td');
+    UI.cells = <NodeListOf<HTMLElement>>document.querySelectorAll('#grid td');
 
-    UI.column_elements = new Array(constraints.width);
+    UI.columnElements = new Array<HTMLCollectionOf<Element>>(constraints.width);
     for (let i = 0; i < constraints.width; i++) {
-        UI.column_elements[i] = document.getElementsByClassName('column-' + i);
+        UI.columnElements[i] = document.getElementsByClassName('column-' + i);
     }
 
-    UI.row_elements = new Array(constraints.height);
+    UI.rowElements = new Array<HTMLCollectionOf<Element>>(constraints.height);
     for (let i = 0; i < constraints.height; i++) {
-        UI.row_elements[i] = document.getElementsByClassName('row-' + i);
+        UI.rowElements[i] = document.getElementsByClassName('row-' + i);
     }
 
     update_table();
@@ -177,10 +204,10 @@ function create_table() {
 
 function reset_solutions() {
     solutions = [];
-    UI.solution_text.innerHTML = '';
-    UI.button_next_solution.style.display = 'none';
-    UI.button_previous_solution.style.display = 'none';
-    UI.current_solution = undefined;      
+    UI.solutionText.innerHTML = '';
+    UI.buttonNextSolution.style.display = 'none';
+    UI.buttonPreviousSolution.style.display = 'none';
+    UI.currentSolution = undefined;      
 }
 
 function create_nonogram() {
@@ -191,8 +218,8 @@ function create_nonogram() {
     end_solving();
     solving = false;
 
-    let width = +UI.input_width.value;
-    let height = +UI.input_height.value;
+    let width = +UI.inputWidth.value;
+    let height = +UI.inputHeight.value;
 
     constraints = {
         width: width,
@@ -207,10 +234,10 @@ function create_nonogram() {
     create_table();
 }
 
-function check_constraints(type, numbers) {
+function check_constraints(type: string, numbers: number[]) {
     if (solutions) {
         solutions = undefined;
-        UI.current_solution = undefined;
+        UI.currentSolution = undefined;
         render_solution();
     }
 
@@ -239,24 +266,24 @@ function check_constraints(type, numbers) {
 function document_ready() {
     UI.grid = document.getElementById('grid');
 
-    UI.button_create = document.getElementById('button-create');
-    UI.button_create.onclick = () => {
-        UI.create_modal.style.display = 'none';
+    UI.buttonCreate = <HTMLButtonElement>document.getElementById('button-create');
+    UI.buttonCreate.onclick = () => {
+        UI.createModal.style.display = 'none';
         create_nonogram();
     };
 
-    UI.input_width = document.getElementById('input-width');
-    UI.input_height = document.getElementById('input-height');
+    UI.inputWidth = <HTMLInputElement>document.getElementById('input-width');
+    UI.inputHeight = <HTMLInputElement>document.getElementById('input-height');
 
-    UI.button_solve = document.getElementById('button-solve');
-    UI.button_solve.onclick = solve_nonogram;
+    UI.buttonSolve = <HTMLButtonElement>document.getElementById('button-solve');
+    UI.buttonSolve.onclick = solve_nonogram;
 
-    UI.select_nonogram = document.getElementById('select-nonogram');
+    UI.selectNonogram = <HTMLSelectElement>document.getElementById('select-nonogram');
 
-    UI.button_load = document.getElementById('button-load');
-    UI.button_load.onclick = () => {
+    UI.buttonLoad = <HTMLButtonElement>document.getElementById('button-load');
+    UI.buttonLoad.onclick = () => {
 
-        UI.create_modal.style.display = 'none';
+        UI.createModal.style.display = 'none';
 
         if (solverWorker instanceof Worker)
             solverWorker.terminate();
@@ -264,44 +291,44 @@ function document_ready() {
         solving = false;
         end_solving();
 
-        let example = JSON.parse(JSON.stringify(examples[UI.select_nonogram.value]));
+        let example = JSON.parse(JSON.stringify(examples[UI.selectNonogram.value]));
 
         constraints = example;
         reset_solutions();
         create_table();
     };
 
-    UI.button_previous_solution = document.getElementById('button-previous-solution');
-    UI.button_next_solution     = document.getElementById('button-next-solution');
+    UI.buttonPreviousSolution = <HTMLButtonElement>document.getElementById('button-previous-solution');
+    UI.buttonNextSolution     = <HTMLButtonElement>document.getElementById('button-next-solution');
     
-    UI.button_previous_solution.onclick = () => {
-        UI.current_solution--;
-        if (UI.current_solution < 0)
-            UI.current_solution = solutions.length - 1;
+    UI.buttonPreviousSolution.onclick = () => {
+        UI.currentSolution--;
+        if (UI.currentSolution < 0)
+            UI.currentSolution = solutions.length - 1;
 
-        UI.solution_text.innerHTML = `Solution ${UI.current_solution + 1} / ${solutions.length}`
+        UI.solutionText.innerHTML = `Solution ${UI.currentSolution + 1} / ${solutions.length}`
 
-        render_solution(solutions[UI.current_solution]);
+        render_solution(solutions[UI.currentSolution]);
     };
 
-    UI.button_next_solution.onclick = () => {
-        UI.current_solution = (UI.current_solution + 1) % solutions.length;
+    UI.buttonNextSolution.onclick = () => {
+        UI.currentSolution = (UI.currentSolution + 1) % solutions.length;
 
-        UI.solution_text.innerHTML = `Solution ${UI.current_solution + 1} / ${solutions.length}`
+        UI.solutionText.innerHTML = `Solution ${UI.currentSolution + 1} / ${solutions.length}`
 
-        render_solution(solutions[UI.current_solution]);
+        render_solution(solutions[UI.currentSolution]);
     };
 
-    UI.solution_text = document.getElementById('solution-text');
+    UI.solutionText = document.getElementById('solution-text');
 
-    UI.checkbox_show_progress = document.getElementById('checkbox-show-progress');
+    UI.checkboxShowProgress = <HTMLInputElement>document.getElementById('checkbox-show-progress');
 
-
-    UI.button_import = document.getElementById('button-import');
-    UI.button_import.onclick = () => {
-        let result = prompt('Paste configuration here:');
+    UI.buttonImport = <HTMLButtonElement>document.getElementById('button-import');
+    UI.buttonImport.onclick = () => {
+        let config_string = prompt('Paste configuration here:');
+        let result: Constraints;
         try {
-            result = JSON.parse(result);
+            result = JSON.parse(config_string);
         } catch (error) {
             alert('Wrong format.');
             return;
@@ -336,7 +363,6 @@ function document_ready() {
             return;
         }
 
-
         let prevWidth = constraints.width;
         let prevHeight = constraints.height;
 
@@ -365,39 +391,39 @@ function document_ready() {
 
         create_table();
     };
-    UI.button_export = document.getElementById('button-export');
-    UI.button_export.onclick = () => {
+    UI.buttonExport = <HTMLButtonElement>document.getElementById('button-export');
+    UI.buttonExport.onclick = () => {
         prompt('Copy the configuration and save it', JSON.stringify(constraints));
     };
 
     /*
      * Create Modal
      */
-    UI.create_modal = document.getElementById('create-modal');
-    UI.button_open_modal = document.getElementById('button-open-modal');
-    UI.button_open_modal.onclick = () => {
-        UI.create_modal.style.display = 'block';
+    UI.createModal = document.getElementById('create-modal');
+    UI.buttonOpenModal = <HTMLButtonElement>document.getElementById('button-open-modal');
+    UI.buttonOpenModal.onclick = () => {
+        UI.createModal.style.display = 'block';
     };
-    let span = document.querySelector('#create-modal .close');
+    let span = <HTMLElement>document.querySelector('#create-modal .close');
     span.onclick = () => {
-        UI.create_modal.style.display = 'none';
+        UI.createModal.style.display = 'none';
     };
 
     window.onclick = event => {
-        if (event.target === UI.create_modal) {
-            UI.create_modal.style.display = "none";
+        if (event.target === UI.createModal) {
+            UI.createModal.style.display = "none";
         }
     };
 
     window.onresize = () => {
-        clearTimeout(UI.resize_timeout);
-        UI.resize_timeout = setTimeout(update_table, 100);
+        clearTimeout(UI.resizeTimeout);
+        UI.resizeTimeout = setTimeout(update_table, 100);
     };
 
     create_nonogram();
 }
 
-function render_solution(solution) {
+function render_solution(solution?: number[][]) {
 
     for (let i = 0; i < UI.cells.length; i++) {
         UI.cells[i].style.background = 'white';
@@ -433,17 +459,17 @@ function solve_nonogram() {
             case 'solutions':
                 solutions = event.data.solutions;
                 if (solutions.length === 0) {
-                    UI.solution_text.innerHTML = 'No Solution found.';
+                    UI.solutionText.innerHTML = 'No Solution found.';
                     render_solution();
                 } else if (solutions.length === 1) {
-                    UI.solution_text.innerHTML = 'Solution 1 / 1';
+                    UI.solutionText.innerHTML = 'Solution 1 / 1';
                     render_solution(solutions[0]);
                 } else {
-                    UI.solution_text.innerHTML = 'Solution 1 / ' + solutions.length;
+                    UI.solutionText.innerHTML = 'Solution 1 / ' + solutions.length;
                     render_solution(solutions[0]);
-                    UI.current_solution = 0;
-                    UI.button_next_solution.style.display = 'initial';
-                    UI.button_previous_solution.style.display = 'initial';
+                    UI.currentSolution = 0;
+                    UI.buttonNextSolution.style.display = 'initial';
+                    UI.buttonPreviousSolution.style.display = 'initial';
                 }
 
                 end_solving();
@@ -468,7 +494,7 @@ function solve_nonogram() {
 
     solverWorker.postMessage({
         type: 'start',
-        callback: UI.checkbox_show_progress.checked
+        callback: UI.checkboxShowProgress.checked
     });
 }
 
@@ -478,9 +504,9 @@ function begin_solving() {
     for (let i = 0; i < nodeList.length; i++) {
         nodeList[i].setAttribute('solving', '');
     }
-    UI.button_solve.setAttribute('disabled', 'true');
+    UI.buttonSolve.setAttribute('disabled', 'true');
 
-    UI.solution_text.innerHTML = 'Thinking . . .'
+    UI.solutionText.innerHTML = 'Thinking . . .'
 }
 
 function end_solving() {
@@ -488,8 +514,8 @@ function end_solving() {
     for (let i = 0; i < nodeList.length; i++) {
         nodeList[i].removeAttribute('solving');
     }
-    UI.button_solve.removeAttribute('disabled');
-    if (UI.solution_text.innerHTML.startsWith('Thinking')) {
-        UI.solution_text.innerHTML = '';
+    UI.buttonSolve.removeAttribute('disabled');
+    if (UI.solutionText.innerHTML.startsWith('Thinking')) {
+        UI.solutionText.innerHTML = '';
     }
 }

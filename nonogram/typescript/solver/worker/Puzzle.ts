@@ -1,27 +1,28 @@
-const BLOCK = 1;
-const EMPTY = 0;
+/// <reference path="../../types.ts"/>
 
 interface LoggingFunction {
     (message: any): void;
 }
 
-interface Constraints {
-    width:   number;
-    height:  number;
-    rows:    number[][];
-    columns: number[][];
+interface CallbackFunction {
+    (state: number[][]): void;
 }
 
 class Puzzle {
     
-    static deep_copy_state(state) {
+    static deep_copy_state(state: number[][]): number[][] {
         return state.map(row => row.map(i => i));
     }
 
     constraints: Constraints;
     log: LoggingFunction;
+    nodes: number;
+    maxRow: number;
+    solutions: number[][][];
+    processCallback: CallbackFunction;
+    rowPermutations: number[][][];
 
-    constructor(constraints) {
+    constructor(constraints: Constraints) {
         this.constraints = constraints;
         this.log = console.log.bind(console);
     }
@@ -30,7 +31,7 @@ class Puzzle {
         this.log = log;
     }
 
-    print(state): void {
+    print(state: number[][]): void {
         let row_number_strings = this.constraints.rows.map(arr => arr.join(' '));
         let row_number_max_length = row_number_strings.map(str => str.length).reduce((prev, curr) => Math.max(prev, curr));
         row_number_strings = row_number_strings.map(str => ' '.repeat(row_number_max_length - str.length) + str);
@@ -71,8 +72,7 @@ class Puzzle {
         }, ''));
     }
 
-    // TODO
-    generate_row_permutations(block_positions, row, block_index, store) {
+    generate_row_permutations(block_positions: number[], row: number[], block_index: number, store: number[][]): void {
         let positions_to_row = () => {
             let r = new Array<number>(this.constraints.width);
             r.fill(EMPTY);
@@ -90,7 +90,7 @@ class Puzzle {
 
         let can_shift = () => {
             if (block_index + 1 === row.length) {
-                return block_positions[block_index] + row[block_index] < this.width;
+                return block_positions[block_index] + row[block_index] < this.constraints.width;
             }
 
             // if there are two empty cells right to the block
@@ -105,35 +105,35 @@ class Puzzle {
     }
 
     generate_permutations() {
-        this.row_permutations = new Array(this.height);
+        this.rowPermutations = new Array<number[][]>(this.constraints.height);
 
-        for (let i = 0; i < this.height; i++) {
+        for (let i = 0; i < this.constraints.height; i++) {
             
             // there are is only 1 case for an empty row
-            if (this.rows[i].length === 1 && this.rows[i][0] === 0) {
-                let empty = new Array(this.width);
+            if (this.constraints.rows[i].length === 1 && this.constraints.rows[i][0] === 0) {
+                let empty = new Array<number>(this.constraints.width);
                 empty.fill(EMPTY);
-                this.row_permutations[i] = [empty];
+                this.rowPermutations[i] = [empty];
                 continue;
             }
             
             // create initial state
             let block_positions = [0];
-            for (let j = 1; j < this.rows[i].length; j++) {
-                block_positions.push(block_positions[j - 1] + this.rows[i][j - 1] + 1);
+            for (let j = 1; j < this.constraints.rows[i].length; j++) {
+                block_positions.push(block_positions[j - 1] + this.constraints.rows[i][j - 1] + 1);
             }
             
             // create permutations for the current row
-            this.row_permutations[i] = [];
-            this.generate_row_permutations(block_positions, this.rows[i], this.rows[i].length - 1, this.row_permutations[i]);
+            this.rowPermutations[i] = [];
+            this.generate_row_permutations(block_positions, this.constraints.rows[i], this.constraints.rows[i].length - 1, this.rowPermutations[i]);
         }
     }
 
-    validate(state) {
+    validate(state: number[][]): boolean {
         let rows_completed = state.length;
 
-        for (let i = 0; i < this.width; i++) {
-            let column = this.columns[i];
+        for (let i = 0; i < this.constraints.width; i++) {
+            let column = this.constraints.columns[i];
 
             // edge case when there are no blocks in the column
             if (column.length === 1 && column[0] === 0) {
@@ -175,12 +175,12 @@ class Puzzle {
             }
 
             // return false if not all blocks were found
-            if (rows_completed === this.height && block_index !== column.length) {
+            if (rows_completed === this.constraints.height && block_index !== column.length) {
                 return false;
             }
 
             // check if the column can't be completed with the remaining blocks
-            let remaining_blocks = this.height - rows_completed;
+            let remaining_blocks = this.constraints.height - rows_completed;
             if (column.slice(block_index).reduce((prev, curr) => prev + curr, 0) + 
                 column.slice(block_index).length - 1 > remaining_blocks) {
                 return false;
@@ -191,7 +191,7 @@ class Puzzle {
         return true;
     }
     
-    dfs(row_index, state) {
+    dfs(row_index: number, state: number[][]): void {
 
         this.nodes += 1;
 
@@ -202,7 +202,7 @@ class Puzzle {
 
             if (this.processCallback) {
                 this.processCallback(state);
-                var now = new Date().getTime();
+                let now: number = new Date().getTime();
                 while(new Date().getTime() < now + 100){ /* do nothing */ } 
             }
         }
@@ -211,7 +211,7 @@ class Puzzle {
             return;
         }
 
-        if (row_index + 1 === this.height) {
+        if (row_index + 1 === this.constraints.height) {
             this.solutions.push(Puzzle.deep_copy_state(state));
             return;
         }
@@ -220,18 +220,18 @@ class Puzzle {
         while (true) {
 
             let next_height_state = Puzzle.deep_copy_state(state);
-            next_height_state.push(this.row_permutations[row_index + 1][permutation_index]);
+            next_height_state.push(this.rowPermutations[row_index + 1][permutation_index]);
 
             this.dfs(row_index + 1, next_height_state);
 
             permutation_index++;
 
-            if (permutation_index === this.row_permutations[row_index + 1].length)
+            if (permutation_index === this.rowPermutations[row_index + 1].length)
                 break;
         }
     }
 
-    solve(processCallback) {
+    solve(processCallback: CallbackFunction): void {
 
         this.processCallback = processCallback;
 

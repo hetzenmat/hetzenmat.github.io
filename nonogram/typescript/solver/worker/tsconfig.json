@@ -11,6 +11,7 @@
         ]
     },
     "files": [        
-        "solver_worker.ts"
+        "solver_worker.ts",
+        "Puzzle.ts"
     ]
 }

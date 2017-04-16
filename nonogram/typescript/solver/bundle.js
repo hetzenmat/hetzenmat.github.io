@@ -1,13 +1,12 @@
-var Example = (function () {
-    function Example(width, height, rows, columns) {
+class Example {
+    constructor(width, height, rows, columns) {
         this.width = width;
         this.height = height;
         this.rows = rows;
         this.columns = columns;
     }
-    return Example;
-}());
-var examples = {};
+}
+let examples = {};
 examples['simple_multiple'] = new Example(2, 2, [
     [1], [1]
 ], [
@@ -58,19 +57,23 @@ examples['heraldic_animal'] = new Example(30, 40, [
 ], [
     [6, 4, 5], [2, 3, 5, 4], [1, 3, 3, 2, 3], [4, 3, 2, 3, 3], [2, 2, 3, 2, 3, 2], [1, 1, 4, 1, 3, 2], [2, 4, 1, 2, 2], [1, 4, 8, 1], [1, 5, 8, 1], [8, 1, 7, 5, 1], [9, 12, 3], [9, 8, 2, 2], [12, 4, 1, 2, 1], [16, 1, 2, 2], [8, 1, 3], [8, 1, 3], [8, 1, 3], [16, 1, 2, 2], [12, 4, 1, 2, 1], [9, 8, 2, 2], [9, 12, 3, 1], [8, 1, 8, 5, 1], [1, 7, 8, 1], [2, 1, 4, 7, 2], [3, 2, 4, 1, 2, 2], [1, 4, 4, 1, 3, 2], [1, 3, 2, 3, 3], [2, 4, 2, 3, 3], [2, 3, 3, 2, 4], [7, 4, 5]
 ]);
-'use strict';
+const EMPTY = 0;
+const BLOCK = 1;
+class UserInterface {
+    constructor() {
+        this.hover_background_color = '#b3b3b3';
+    }
+}
+let UI = new UserInterface();
 if (document.readyState !== 'loading')
     document_ready();
 else
     document.addEventListener('DOMContentLoaded', document_ready);
-var UI = {
-    hover_background_color: '#b3b3b3'
-};
-var constraints;
-var solutions = [];
-var solving;
-var solverWorker;
-var SPLITTER = [
+let constraints;
+let solutions;
+let solving;
+let solverWorker;
+const SPLITTER = [
     ',',
     '\\.',
     '/',
@@ -79,30 +82,30 @@ var SPLITTER = [
     ' ',
     '\\|'
 ];
-var SPLITTER_REGEX = new RegExp("(" + SPLITTER.join('|') + ")+", 'g');
+const SPLITTER_REGEX = new RegExp(`(${SPLITTER.join('|')})+`, 'g');
 function mouseenter_constraint(type, cell) {
-    var elements = document.querySelectorAll('.constraint-' + type + '-' + cell.dataset[type]);
-    for (var i = 0; i < elements.length; i++) {
+    let elements = document.querySelectorAll('.constraint-' + type + '-' + cell.dataset[type]);
+    for (let i = 0; i < elements.length; i++) {
         elements[i].style.background = UI.hover_background_color;
     }
 }
 function mouseleave_constraint(type, cell) {
-    var elements = document.querySelectorAll('.constraint-' + type + '-' + cell.dataset[type]);
-    for (var i = 0; i < elements.length; i++) {
+    let elements = document.querySelectorAll('.constraint-' + type + '-' + cell.dataset[type]);
+    for (let i = 0; i < elements.length; i++) {
         elements[i].style.background = 'white';
     }
 }
 function onclick_row_constraint(cell) {
     if (solving)
         return;
-    var row = +cell.dataset.rows;
-    var result = prompt('', constraints.rows[row].join(' '));
-    if (!result)
+    let row = +cell.dataset.rows;
+    let userPrompt = prompt('', constraints.rows[row].join(' '));
+    if (!userPrompt)
         return;
     reset_solutions();
-    result = result.split(SPLITTER_REGEX).map(function (str) { return +str; });
+    let result = userPrompt.split(SPLITTER_REGEX).map(str => +str);
     result = check_constraints('row', result);
-    if (!result) {
+    if (result === false) {
         alert('Constraints not valid.');
         return;
     }
@@ -112,14 +115,14 @@ function onclick_row_constraint(cell) {
 function onclick_column_constraint(cell) {
     if (solving)
         return;
-    var column = +cell.dataset.columns;
-    var result = prompt('', constraints.columns[column].join(' '));
-    if (!result)
+    let column = +cell.dataset.columns;
+    let userPrompt = prompt('', constraints.columns[column].join(' '));
+    if (!userPrompt)
         return;
     reset_solutions();
-    result = result.split(SPLITTER_REGEX).map(function (str) { return +str; });
+    let result = userPrompt.split(SPLITTER_REGEX).map(str => +str);
     result = check_constraints('column', result);
-    if (!result) {
+    if (result === false) {
         alert('Constraints not valid.');
         return;
     }
@@ -127,10 +130,10 @@ function onclick_column_constraint(cell) {
     create_table();
 }
 function update_table() {
-    var em = 1.5;
+    let em = 1.5;
     while (UI.cells[0].offsetHeight !== UI.cells[0].offsetWidth) {
-        var cell_width = UI.cells[0].offsetWidth;
-        for (var i = 0; i < UI.cells.length; i++) {
+        let cell_width = UI.cells[0].offsetWidth;
+        for (let i = 0; i < UI.cells.length; i++) {
             UI.cells[i].style.height = cell_width + 'px';
             UI.cells[i].style.fontSize = em + 'em';
         }
@@ -138,15 +141,15 @@ function update_table() {
     }
 }
 function create_table() {
-    var html = '';
-    var max_constraints_column = constraints.columns.reduce(function (prev, curr) { return Math.max(prev, curr.length); }, 0);
-    var max_constraints_row = constraints.rows.reduce(function (prev, curr) { return Math.max(prev, curr.length); }, 0);
-    for (var k = 0; k < max_constraints_column; k++) {
+    let html = '';
+    let max_constraints_column = constraints.columns.reduce((prev, curr) => Math.max(prev, curr.length), 0);
+    let max_constraints_row = constraints.rows.reduce((prev, curr) => Math.max(prev, curr.length), 0);
+    for (let k = 0; k < max_constraints_column; k++) {
         html += '<tr>\n';
         html += '<td></td>\n'.repeat(max_constraints_row);
-        for (var i = 0; i < constraints.width; i++) {
-            var index = k - max_constraints_column + constraints.columns[i].length;
-            var value = void 0;
+        for (let i = 0; i < constraints.width; i++) {
+            let index = k - max_constraints_column + constraints.columns[i].length;
+            let value;
             if (index < 0) {
                 value = '';
             }
@@ -161,11 +164,11 @@ function create_table() {
         }
         html += '</tr>\n';
     }
-    for (var i = 0; i < constraints.height; i++) {
+    for (let i = 0; i < constraints.height; i++) {
         html += '</tr>\n';
-        for (var k = 0; k < max_constraints_row; k++) {
-            var index = k - max_constraints_row + constraints.rows[i].length;
-            var value = void 0;
+        for (let k = 0; k < max_constraints_row; k++) {
+            let index = k - max_constraints_row + constraints.rows[i].length;
+            let value;
             if (index < 0) {
                 value = '';
             }
@@ -178,37 +181,37 @@ function create_table() {
                 + 'onmouseleave="mouseleave_constraint(\'rows\', this)" '
                 + 'data-rows="' + i + '">' + value + '</td>\n';
         }
-        for (var j = 0; j < constraints.width; j++) {
+        for (let j = 0; j < constraints.width; j++) {
             html += '<td id="' + i + '-' + j + '" class="row-' + i + ' column-' + j + '"></td>\n';
         }
         html += '</tr>\n';
     }
     UI.grid.innerHTML = html;
     UI.cells = document.querySelectorAll('#grid td');
-    UI.column_elements = new Array(constraints.width);
-    for (var i = 0; i < constraints.width; i++) {
-        UI.column_elements[i] = document.getElementsByClassName('column-' + i);
+    UI.columnElements = new Array(constraints.width);
+    for (let i = 0; i < constraints.width; i++) {
+        UI.columnElements[i] = document.getElementsByClassName('column-' + i);
     }
-    UI.row_elements = new Array(constraints.height);
-    for (var i = 0; i < constraints.height; i++) {
-        UI.row_elements[i] = document.getElementsByClassName('row-' + i);
+    UI.rowElements = new Array(constraints.height);
+    for (let i = 0; i < constraints.height; i++) {
+        UI.rowElements[i] = document.getElementsByClassName('row-' + i);
     }
     update_table();
 }
 function reset_solutions() {
     solutions = [];
-    UI.solution_text.innerHTML = '';
-    UI.button_next_solution.style.display = 'none';
-    UI.button_previous_solution.style.display = 'none';
-    UI.current_solution = undefined;
+    UI.solutionText.innerHTML = '';
+    UI.buttonNextSolution.style.display = 'none';
+    UI.buttonPreviousSolution.style.display = 'none';
+    UI.currentSolution = undefined;
 }
 function create_nonogram() {
     if (solverWorker instanceof Worker)
         solverWorker.terminate();
     end_solving();
     solving = false;
-    var width = +UI.input_width.value;
-    var height = +UI.input_height.value;
+    let width = +UI.inputWidth.value;
+    let height = +UI.inputHeight.value;
     constraints = {
         width: width,
         height: height,
@@ -222,13 +225,13 @@ function create_nonogram() {
 function check_constraints(type, numbers) {
     if (solutions) {
         solutions = undefined;
-        UI.current_solution = undefined;
+        UI.currentSolution = undefined;
         render_solution();
     }
-    numbers = numbers.filter(function (value) { return value !== 0; });
+    numbers = numbers.filter(value => value !== 0);
     if (numbers.length === 0)
         return [0];
-    var sum = numbers.reduce(function (prev, curr) { return prev + curr; }) + numbers.length - 1;
+    let sum = numbers.reduce((prev, curr) => prev + curr) + numbers.length - 1;
     switch (type) {
         case 'row':
             if (sum > constraints.width)
@@ -243,61 +246,62 @@ function check_constraints(type, numbers) {
 }
 function document_ready() {
     UI.grid = document.getElementById('grid');
-    UI.button_create = document.getElementById('button-create');
-    UI.button_create.onclick = function () {
-        UI.create_modal.style.display = 'none';
+    UI.buttonCreate = document.getElementById('button-create');
+    UI.buttonCreate.onclick = () => {
+        UI.createModal.style.display = 'none';
         create_nonogram();
     };
-    UI.input_width = document.getElementById('input-width');
-    UI.input_height = document.getElementById('input-height');
-    UI.button_solve = document.getElementById('button-solve');
-    UI.button_solve.onclick = solve_nonogram;
-    UI.select_nonogram = document.getElementById('select-nonogram');
-    UI.button_load = document.getElementById('button-load');
-    UI.button_load.onclick = function () {
-        UI.create_modal.style.display = 'none';
+    UI.inputWidth = document.getElementById('input-width');
+    UI.inputHeight = document.getElementById('input-height');
+    UI.buttonSolve = document.getElementById('button-solve');
+    UI.buttonSolve.onclick = solve_nonogram;
+    UI.selectNonogram = document.getElementById('select-nonogram');
+    UI.buttonLoad = document.getElementById('button-load');
+    UI.buttonLoad.onclick = () => {
+        UI.createModal.style.display = 'none';
         if (solverWorker instanceof Worker)
             solverWorker.terminate();
         solving = false;
         end_solving();
-        var example = JSON.parse(JSON.stringify(examples[UI.select_nonogram.value]));
+        let example = JSON.parse(JSON.stringify(examples[UI.selectNonogram.value]));
         constraints = example;
         reset_solutions();
         create_table();
     };
-    UI.button_previous_solution = document.getElementById('button-previous-solution');
-    UI.button_next_solution = document.getElementById('button-next-solution');
-    UI.button_previous_solution.onclick = function () {
-        UI.current_solution--;
-        if (UI.current_solution < 0)
-            UI.current_solution = solutions.length - 1;
-        UI.solution_text.innerHTML = "Solution " + (UI.current_solution + 1) + " / " + solutions.length;
-        render_solution(solutions[UI.current_solution]);
+    UI.buttonPreviousSolution = document.getElementById('button-previous-solution');
+    UI.buttonNextSolution = document.getElementById('button-next-solution');
+    UI.buttonPreviousSolution.onclick = () => {
+        UI.currentSolution--;
+        if (UI.currentSolution < 0)
+            UI.currentSolution = solutions.length - 1;
+        UI.solutionText.innerHTML = `Solution ${UI.currentSolution + 1} / ${solutions.length}`;
+        render_solution(solutions[UI.currentSolution]);
     };
-    UI.button_next_solution.onclick = function () {
-        UI.current_solution = (UI.current_solution + 1) % solutions.length;
-        UI.solution_text.innerHTML = "Solution " + (UI.current_solution + 1) + " / " + solutions.length;
-        render_solution(solutions[UI.current_solution]);
+    UI.buttonNextSolution.onclick = () => {
+        UI.currentSolution = (UI.currentSolution + 1) % solutions.length;
+        UI.solutionText.innerHTML = `Solution ${UI.currentSolution + 1} / ${solutions.length}`;
+        render_solution(solutions[UI.currentSolution]);
     };
-    UI.solution_text = document.getElementById('solution-text');
-    UI.checkbox_show_progress = document.getElementById('checkbox-show-progress');
-    UI.button_import = document.getElementById('button-import');
-    UI.button_import.onclick = function () {
-        var result = prompt('Paste configuration here:');
+    UI.solutionText = document.getElementById('solution-text');
+    UI.checkboxShowProgress = document.getElementById('checkbox-show-progress');
+    UI.buttonImport = document.getElementById('button-import');
+    UI.buttonImport.onclick = () => {
+        let config_string = prompt('Paste configuration here:');
+        let result;
         try {
-            result = JSON.parse(result);
+            result = JSON.parse(config_string);
         }
         catch (error) {
             alert('Wrong format.');
             return;
         }
-        var props = [
+        let props = [
             'width',
             'height',
             'rows',
             'columns'
         ];
-        if (!props.every(function (p) { return result.hasOwnProperty(p); })) {
+        if (!props.every(p => result.hasOwnProperty(p))) {
             alert('Property is missing.');
             return;
         }
@@ -317,11 +321,11 @@ function document_ready() {
             alert('Columns must be an array');
             return;
         }
-        var prevWidth = constraints.width;
-        var prevHeight = constraints.height;
+        let prevWidth = constraints.width;
+        let prevHeight = constraints.height;
         constraints.width = result.width;
         constraints.height = result.height;
-        for (var i = 0; i < result.rows.length; i++) {
+        for (let i = 0; i < result.rows.length; i++) {
             if (!check_constraints('row', result.rows[i])) {
                 alert('Row ' + (i + 1) + ' is not valid.');
                 constraints.width = prevWidth;
@@ -329,7 +333,7 @@ function document_ready() {
                 return;
             }
         }
-        for (var i = 0; i < result.columns.length; i++) {
+        for (let i = 0; i < result.columns.length; i++) {
             if (!check_constraints('column', result.columns[i])) {
                 alert('Column ' + (i + 1) + ' is not valid.');
                 constraints.width = prevWidth;
@@ -341,38 +345,38 @@ function document_ready() {
         constraints.columns = result.columns;
         create_table();
     };
-    UI.button_export = document.getElementById('button-export');
-    UI.button_export.onclick = function () {
+    UI.buttonExport = document.getElementById('button-export');
+    UI.buttonExport.onclick = () => {
         prompt('Copy the configuration and save it', JSON.stringify(constraints));
     };
-    UI.create_modal = document.getElementById('create-modal');
-    UI.button_open_modal = document.getElementById('button-open-modal');
-    UI.button_open_modal.onclick = function () {
-        UI.create_modal.style.display = 'block';
+    UI.createModal = document.getElementById('create-modal');
+    UI.buttonOpenModal = document.getElementById('button-open-modal');
+    UI.buttonOpenModal.onclick = () => {
+        UI.createModal.style.display = 'block';
     };
-    var span = document.querySelector('#create-modal .close');
-    span.onclick = function () {
-        UI.create_modal.style.display = 'none';
+    let span = document.querySelector('#create-modal .close');
+    span.onclick = () => {
+        UI.createModal.style.display = 'none';
     };
-    window.onclick = function (event) {
-        if (event.target === UI.create_modal) {
-            UI.create_modal.style.display = "none";
+    window.onclick = event => {
+        if (event.target === UI.createModal) {
+            UI.createModal.style.display = "none";
         }
     };
-    window.onresize = function () {
-        clearTimeout(UI.resize_timeout);
-        UI.resize_timeout = setTimeout(update_table, 100);
+    window.onresize = () => {
+        clearTimeout(UI.resizeTimeout);
+        UI.resizeTimeout = setTimeout(update_table, 100);
     };
     create_nonogram();
 }
 function render_solution(solution) {
-    for (var i = 0; i < UI.cells.length; i++) {
+    for (let i = 0; i < UI.cells.length; i++) {
         UI.cells[i].style.background = 'white';
     }
     if (solution) {
-        for (var i = 0; i < solution.length; i++) {
-            for (var j = 0; j < solution[0].length; j++) {
-                var cell = document.getElementById(i + '-' + j);
+        for (let i = 0; i < solution.length; i++) {
+            for (let j = 0; j < solution[0].length; j++) {
+                let cell = document.getElementById(i + '-' + j);
                 if (solution[i][j] === BLOCK)
                     cell.style.background = 'black';
             }
@@ -393,19 +397,19 @@ function solve_nonogram() {
             case 'solutions':
                 solutions = event.data.solutions;
                 if (solutions.length === 0) {
-                    UI.solution_text.innerHTML = 'No Solution found.';
+                    UI.solutionText.innerHTML = 'No Solution found.';
                     render_solution();
                 }
                 else if (solutions.length === 1) {
-                    UI.solution_text.innerHTML = 'Solution 1 / 1';
+                    UI.solutionText.innerHTML = 'Solution 1 / 1';
                     render_solution(solutions[0]);
                 }
                 else {
-                    UI.solution_text.innerHTML = 'Solution 1 / ' + solutions.length;
+                    UI.solutionText.innerHTML = 'Solution 1 / ' + solutions.length;
                     render_solution(solutions[0]);
-                    UI.current_solution = 0;
-                    UI.button_next_solution.style.display = 'initial';
-                    UI.button_previous_solution.style.display = 'initial';
+                    UI.currentSolution = 0;
+                    UI.buttonNextSolution.style.display = 'initial';
+                    UI.buttonPreviousSolution.style.display = 'initial';
                 }
                 end_solving();
                 solving = false;
@@ -424,210 +428,25 @@ function solve_nonogram() {
     });
     solverWorker.postMessage({
         type: 'start',
-        callback: UI.checkbox_show_progress.checked
+        callback: UI.checkboxShowProgress.checked
     });
 }
 function begin_solving() {
-    var nodeList = document.querySelectorAll('#grid td[class^="constraint-"]');
-    for (var i = 0; i < nodeList.length; i++) {
+    let nodeList = document.querySelectorAll('#grid td[class^="constraint-"]');
+    for (let i = 0; i < nodeList.length; i++) {
         nodeList[i].setAttribute('solving', '');
     }
-    UI.button_solve.setAttribute('disabled', 'true');
-    UI.solution_text.innerHTML = 'Thinking . . .';
+    UI.buttonSolve.setAttribute('disabled', 'true');
+    UI.solutionText.innerHTML = 'Thinking . . .';
 }
 function end_solving() {
-    var nodeList = document.querySelectorAll('#grid td[class^="constraint-"]');
-    for (var i = 0; i < nodeList.length; i++) {
+    let nodeList = document.querySelectorAll('#grid td[class^="constraint-"]');
+    for (let i = 0; i < nodeList.length; i++) {
         nodeList[i].removeAttribute('solving');
     }
-    UI.button_solve.removeAttribute('disabled');
-    if (UI.solution_text.innerHTML.startsWith('Thinking')) {
-        UI.solution_text.innerHTML = '';
+    UI.buttonSolve.removeAttribute('disabled');
+    if (UI.solutionText.innerHTML.startsWith('Thinking')) {
+        UI.solutionText.innerHTML = '';
     }
 }
-'use strict';
-var BLOCK = 1;
-var EMPTY = 0;
-var Puzzle = (function () {
-    function Puzzle(constraints) {
-        this.width = constraints.width;
-        this.height = constraints.height;
-        this.rows = constraints.rows;
-        this.columns = constraints.columns;
-        this.log = console.log.bind(console);
-    }
-    Puzzle.deep_copy_state = function (state) {
-        return state.map(function (row) { return row.map(function (i) { return i; }); });
-    };
-    Puzzle.prototype.set_logger = function (log) {
-        this.log = log;
-    };
-    Puzzle.prototype.print = function (state) {
-        var row_number_strings = this.rows.map(function (arr) { return arr.join(' '); });
-        var row_number_max_length = row_number_strings.map(function (str) { return str.length; }).reduce(function (prev, curr) { return Math.max(prev, curr); });
-        row_number_strings = row_number_strings.map(function (str) { return ' '.repeat(row_number_max_length - str.length) + str; });
-        var column_number_strings = this.columns.map(function (arr) { return arr.join(' '); });
-        var column_number_max_length = column_number_strings.map(function (str) { return str.length; }).reduce(function (prev, curr) { return Math.max(prev, curr); });
-        column_number_strings = column_number_strings.map(function (str) { return ' '.repeat(column_number_max_length - str.length) + str; });
-        var output = '';
-        for (var i = 0; i < column_number_max_length; i++) {
-            output += ' '.repeat(row_number_max_length);
-            for (var j = 0; j < this.width; j++) {
-                output += column_number_strings[j][i];
-            }
-            output += '\n';
-        }
-        for (var i = 0; i < this.height; i++) {
-            output += row_number_strings[i];
-            for (var j = 0; j < this.width; j++) {
-                if (state[i][j] === EMPTY)
-                    output += '.';
-                else
-                    output += '#';
-            }
-            output += '\n';
-        }
-        this.log(output);
-    };
-    Puzzle.prototype.print_row = function (row) {
-        this.log(row.reduce(function (prev, curr) {
-            if (curr === BLOCK)
-                return prev + '#';
-            return prev + '.';
-        }, ''));
-    };
-    Puzzle.prototype.generate_row_permutations = function (block_positions, row, block_index, store) {
-        var _this = this;
-        var positions_to_row = function () {
-            var r = new Array(_this.width);
-            r.fill(EMPTY);
-            block_positions.forEach(function (value, index) {
-                r.fill(BLOCK, value, value + row[index]);
-            });
-            return r;
-        };
-        store.push(positions_to_row());
-        if (block_index < 0)
-            return;
-        var can_shift = function () {
-            if (block_index + 1 === row.length) {
-                return block_positions[block_index] + row[block_index] < _this.width;
-            }
-            return block_positions[block_index] + row[block_index] + 1 < block_positions[block_index + 1];
-        };
-        while (can_shift()) {
-            block_positions[block_index]++;
-            this.generate_row_permutations(JSON.parse(JSON.stringify(block_positions)), row, block_index - 1, store);
-        }
-    };
-    Puzzle.prototype.generate_permutations = function () {
-        this.row_permutations = new Array(this.height);
-        for (var i = 0; i < this.height; i++) {
-            if (this.rows[i].length === 1 && this.rows[i][0] === 0) {
-                var empty = new Array(this.width);
-                empty.fill(EMPTY);
-                this.row_permutations[i] = [empty];
-                continue;
-            }
-            var block_positions = [0];
-            for (var j = 1; j < this.rows[i].length; j++) {
-                block_positions.push(block_positions[j - 1] + this.rows[i][j - 1] + 1);
-            }
-            this.row_permutations[i] = [];
-            this.generate_row_permutations(block_positions, this.rows[i], this.rows[i].length - 1, this.row_permutations[i]);
-        }
-    };
-    Puzzle.prototype.validate = function (state) {
-        var rows_completed = state.length;
-        for (var i = 0; i < this.width; i++) {
-            var column = this.columns[i];
-            if (column.length === 1 && column[0] === 0) {
-                for (var j = 0; j < rows_completed; j++) {
-                    if (state[j][i] === BLOCK)
-                        return false;
-                }
-                continue;
-            }
-            var in_block = false;
-            var num_blocks = void 0;
-            var block_index = 0;
-            for (var j = 0; j < rows_completed; j++) {
-                if (state[j][i] === BLOCK) {
-                    if (in_block) {
-                        num_blocks--;
-                        if (num_blocks < 0)
-                            return false;
-                    }
-                    else {
-                        if (block_index >= column.length)
-                            return false;
-                        num_blocks = column[block_index] - 1;
-                        block_index++;
-                        in_block = true;
-                    }
-                }
-                else {
-                    if (in_block) {
-                        if (num_blocks !== 0)
-                            return false;
-                        in_block = false;
-                    }
-                }
-            }
-            if (rows_completed === this.height && block_index !== column.length) {
-                return false;
-            }
-            var remaining_blocks = this.height - rows_completed;
-            if (column.slice(block_index).reduce(function (prev, curr) { return prev + curr; }, 0) +
-                column.slice(block_index).length - 1 > remaining_blocks) {
-                return false;
-            }
-        }
-        return true;
-    };
-    Puzzle.prototype.dfs = function (row_index, state) {
-        this.nodes += 1;
-        if (row_index > this.maxRow) {
-            this.log('max row: ' + row_index + '\nnodes: ' + this.nodes);
-            this.maxRow = row_index;
-            if (this.processCallback) {
-                this.processCallback(state);
-                var now = new Date().getTime();
-                while (new Date().getTime() < now + 100) { }
-            }
-        }
-        if (!this.validate(state)) {
-            return;
-        }
-        if (row_index + 1 === this.height) {
-            this.solutions.push(Puzzle.deep_copy_state(state));
-            return;
-        }
-        var permutation_index = 0;
-        while (true) {
-            var next_height_state = Puzzle.deep_copy_state(state);
-            next_height_state.push(this.row_permutations[row_index + 1][permutation_index]);
-            this.dfs(row_index + 1, next_height_state);
-            permutation_index++;
-            if (permutation_index === this.row_permutations[row_index + 1].length)
-                break;
-        }
-    };
-    Puzzle.prototype.solve = function (processCallback) {
-        var _this = this;
-        this.processCallback = processCallback;
-        this.log('Generating permutations.');
-        this.generate_permutations();
-        this.solutions = [];
-        this.nodes = -1;
-        this.maxRow = 0;
-        this.log('Solving.');
-        this.dfs(-1, []);
-        this.log('#Solutions: ' + this.solutions.length);
-        this.solutions.forEach(function (s) {
-            _this.print(s);
-        });
-    };
-    return Puzzle;
-}());
 //# sourceMappingURL=bundle.js.map

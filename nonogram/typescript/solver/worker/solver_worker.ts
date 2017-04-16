@@ -1,10 +1,8 @@
-'use strict';
+/// <reference path="Puzzle.ts"/>
 
-importScripts('Puzzle.js');
+let puzzle : Puzzle;
 
-let puzzle;
-
-function log(message) {
+function log(message: any): void {
 	postMessage({
 		type: 'log',
 		message: message
@@ -17,7 +15,7 @@ onmessage = function (event) {
 		case 'start':
 			let callback;
 			if (event.data.callback) {
-				callback = function(state) {
+				callback = function(state: any) {
 					postMessage({
 						type: 'progress',
 						state: state

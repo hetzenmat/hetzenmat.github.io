@@ -1,5 +1,4 @@
-const EMPTY = 0;
-const BLOCK = 1;
+/// <reference path="../types.ts"/>
 
 interface SolutionList {
     [index : number] : number[][]
