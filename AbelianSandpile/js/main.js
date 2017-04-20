@@ -11,7 +11,7 @@ worker.onmessage = (event) => {
         case 'svg':
             svg.setAttribute('viewBox', eventData.viewBox);
             svg.innerHTML = eventData.svg;
-            spanIteration.innerHTML = iterations.toString();
+            spanIteration.innerHTML = (++iterations).toString();
             break;
         case 'log':
             console.log('Iteration: ' + iterations);

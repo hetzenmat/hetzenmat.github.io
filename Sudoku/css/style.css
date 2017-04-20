@@ -1,0 +1,29 @@
+#grid {
+    width: 60%;
+    table-layout: fixed;
+    border-collapse: collapse;
+}
+
+#grid td {
+    border: 1px solid black;
+    height: 20px;
+    box-sizing: border-box;
+    text-align: center;
+    overflow: hidden;
+}
+
+#grid .border-left {
+    border-left: 0.2em solid black;
+}
+
+#grid .border-right {
+    border-right: 0.2em solid black;
+}
+
+#grid .border-top {
+    border-top: 0.2em solid black;
+}
+
+#grid .border-bottom {
+    border-bottom: 0.2em solid black;
+}

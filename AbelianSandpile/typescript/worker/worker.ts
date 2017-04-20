@@ -17,7 +17,7 @@ onmessage = (event: MessageEvent) => {
     }
 };
 
-let max_size = 0;
+let maxSize = 0;
 let map: Map<string, number> = new Map();
 let spills: number[][];
 let COLORS = [
@@ -26,15 +26,22 @@ let COLORS = [
     0
 ];
 
+function getValue(value: number): number {
+    if (value === undefined)
+        value = 0;
+
+    return value;
+}
+
 function coordinateToString(x: number, y: number): string {
     return `${x}|${y}`;
 }
 
-function process_point(x: number, y: number): void {
+function processPoint(x: number, y: number): void {
 
-    max_size = Math.max(x, max_size);
+    maxSize = Math.max(x, maxSize);
 
-    let value = map.get(coordinateToString(x, y)) + 1;
+    let value = getValue(map.get(coordinateToString(x, y))) + 1;
 
     if (value === 4) {
         value = 0;
@@ -44,14 +51,14 @@ function process_point(x: number, y: number): void {
     map.set(coordinateToString(x, y), value);
 }
 
-function send_svg(): void {
+function sendSVG(): void {
 
     let str = `<g style="stroke-width:0;">`;
 
-    for (let i = -max_size; i <= max_size; i++) {
-        for (let j = -max_size; j <= max_size; j++) {
+    for (let i = -maxSize; i <= maxSize; i++) {
+        for (let j = -maxSize; j <= maxSize; j++) {
 
-            let value = map.get(coordinateToString(i, j));
+            let value = getValue(map.get(coordinateToString(i, j)));
             if (value > 0) {
                 let color = Array(3).fill(COLORS[value - 1]).join(',');
                 str += `<rect x="${i}" y="${j}" width="1" height="1" style="fill:rgb(${color})" />\n`;
@@ -62,16 +69,16 @@ function send_svg(): void {
     str += '</g>';
     postMessage({
         type: 'svg',
-        viewBox: `${-max_size} ${-max_size} ${2*max_size+1} ${2*max_size+1}`,
+        viewBox: `${-maxSize} ${-maxSize} ${2*maxSize+1} ${2*maxSize+1}`,
         svg: str
     });
 }
 
 function log() {
     let str = '';
-    for (let i = -max_size; i <= max_size; i++) {
-        for (let j = -max_size; j <= max_size; j++) {
-            let value: number|string = map.get(coordinateToString(i, j));
+    for (let i = -maxSize; i <= maxSize; i++) {
+        for (let j = -maxSize; j <= maxSize; j++) {
+            let value: number|string = getValue(map.get(coordinateToString(i, j)));
             if (value === 0) {
                 value = '.';
             }
@@ -88,7 +95,7 @@ function log() {
 
 function iterate() {
 
-    let value = map.get(coordinateToString(0, 0)) + 1;
+    let value = getValue(map.get(coordinateToString(0, 0))) + 1;
     spills = [];
     if (value === 4) {
         value = 0;
@@ -99,13 +106,13 @@ function iterate() {
     while (spills.length > 0) {
         let [x, y] = spills.pop();
 
-        process_point(x + 1, y);
-        process_point(x - 1, y);
-        process_point(x, y + 1);
-        process_point(x, y - 1);
+        processPoint(x + 1, y);
+        processPoint(x - 1, y);
+        processPoint(x, y + 1);
+        processPoint(x, y - 1);
     }
 
-    send_svg();
+    sendSVG();
     log();
-    timeoutID = setTimeout(iterate, 10);
+    timeoutID = setTimeout(iterate, 20);
 }
