@@ -3,15 +3,14 @@
         "noImplicitAny": true,
         "removeComments": true,
         "preserveConstEnums": true,
-        "outFile": "solver_worker.js",
-        "sourceMap": true,
+        "outFile": "../../../js/solver_worker.js",
+        "sourceMap": false,
         "lib": [
             "ES6",
             "WebWorker"
         ]
     },
     "files": [        
-        "solver_worker.ts",
-        "Puzzle.ts"
+        "solver_worker.ts"
     ]
 }

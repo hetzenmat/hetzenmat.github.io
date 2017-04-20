@@ -3,13 +3,11 @@
         "noImplicitAny": true,
         "removeComments": true,
         "preserveConstEnums": true,
-        "outFile": "bundle.js",
-        "sourceMap": true,
+        "outFile": "../../js/main.js",
+        "sourceMap": false,
         "target": "es6"
     },
     "files": [
-        "../examples.ts",
-        "../types.ts",
         "main.ts"
     ]
 }
