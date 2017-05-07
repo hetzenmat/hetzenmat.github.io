@@ -1,2 +1,2 @@
 # hetzenmat.github.io
-Applications and Thoughts on Artificial Intelligence and Machine Learning
+Personal Projects and Blog Posts
