@@ -2,41 +2,41 @@ if (document.readyState !== 'loading')
     documentReady();
 else
     document.addEventListener('DOMContentLoaded', documentReady);
-let grid;
-let gridElements;
-let resizeTimeout;
+var grid;
+var gridElements;
+var resizeTimeout;
 function documentReady() {
     grid = document.getElementById('grid');
     createGrid();
-    window.onresize = () => {
+    window.onresize = function () {
         clearTimeout(resizeTimeout);
         resizeTimeout = setTimeout(updateTable, 100);
     };
 }
 function toID(row, col) {
-    return `${row}|${col}`;
+    return row + "|" + col;
 }
 function createGrid() {
     grid.innerHTML = '';
     gridElements = [];
-    for (let row = 0; row < 9; row++) {
-        let tr = document.createElement('tr');
+    for (var row = 0; row < 9; row++) {
+        var tr = document.createElement('tr');
         gridElements[row] = [];
-        for (let col = 0; col < 9; col++) {
-            let td = document.createElement('td');
+        var _loop_1 = function (col) {
+            var td = document.createElement('td');
             td.tabIndex = row * 9 + col;
-            td.onkeydown = (event) => {
+            td.onkeydown = function (event) {
                 if (event.key === 'Backspace') {
                     td.innerHTML = '';
                     return;
                 }
-                let key = parseInt(event.key);
+                var key = parseInt(event.key);
                 if (!isNaN(key)) {
                     td.innerHTML = key.toString();
                 }
             };
-            td.onfocus = () => td.style.backgroundColor = '#b3b3b3';
-            td.onblur = () => td.style.backgroundColor = '';
+            td.onfocus = function () { return td.style.backgroundColor = '#b3b3b3'; };
+            td.onblur = function () { return td.style.backgroundColor = ''; };
             if (col % 3 === 0) {
                 td.classList.add('border-left');
             }
@@ -52,17 +52,20 @@ function createGrid() {
             td.setAttribute('id', toID(row, col));
             gridElements[row][col] = td;
             tr.appendChild(td);
+        };
+        for (var col = 0; col < 9; col++) {
+            _loop_1(col);
         }
         grid.appendChild(tr);
     }
     updateTable();
 }
 function updateTable() {
-    let em = 1;
+    var em = 1;
     while (gridElements[0][0].offsetHeight !== gridElements[0][0].offsetWidth) {
-        let cellWidth = gridElements[0][0].offsetWidth;
-        for (let i = 0; i < 9; i++) {
-            for (let j = 0; j < 9; j++) {
+        var cellWidth = gridElements[0][0].offsetWidth;
+        for (var i = 0; i < 9; i++) {
+            for (var j = 0; j < 9; j++) {
                 gridElements[i][j].style.height = cellWidth + 'px';
                 gridElements[i][j].style.fontSize = em + 'em';
             }

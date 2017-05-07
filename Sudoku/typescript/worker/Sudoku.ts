@@ -1,70 +1,162 @@
 class Sudoku {
-    grid: number[][];
 
-    constructor() {
-        this.clear();
+    private grid: number[][];
+    private fixed: boolean[][];
+    private solutions: number[][][];
+
+    private static get line_seperator(): string {
+        return '+---+---+---+';
     }
 
-    clear() {
-        this.grid = [];
-        for (let i = 0; i < 9; i++) {
-            let row: number[] = [];
-            for (let j = 0; j < 9; j++) {
-                row.push(0);
+    private static new_grid(value: any, rows=9, cols=9): any[][] {
+        let grid: any[][] = [];
+
+        for (let row = 0; row < rows; row++) {
+            let row_array: any[] = [];
+            for (let col = 0; col < cols; col++) {
+                row_array.push(value);
             }
-            this.grid.push(row);
+            grid.push(row_array);
         }
+
+        return grid;
     }
 
-    parse(input: string): void {
-        this.clear();
-        let rows = input.trim().split('\n');
+    private static grid_deep_copy<T>(grid: T[][], rows=9, cols=9): T[][] {
+        let copy: T[][] = [];
 
-        if (rows.length !== 9) {
-            throw new Error(`9 rows required (${rows.length} given).`);
+        for (let row = 0; row < 9; row++) {
+            let copied_row: T[] = [];
+            for (let col = 0; col < 9; col++) {
+                copied_row.push(grid[row][col]);
+            }
+            copy.push(copied_row);
+        }
+
+        return copy;
+    }
+
+    public static sudoku_to_string(grid: number[][], placeholder='.'): string {
+        let result = '';
+
+        for (let row = 0; row < 9; row++) {
+            if (row % 3 === 0)
+                result += Sudoku.line_seperator + '\n';
+
+            for (let col = 0; col < 9; col++) {
+                if (col % 3 === 0)
+                    result += '|';
+
+                if (grid[row][col] !== 0)
+                    result += grid[row][col];
+                else
+                    result += placeholder;
+            }
+            result += '\n';
+        }
+
+        result += Sudoku.line_seperator + '\n';
+        return result;
+    }
+
+    public parse_sudoku(sudoku_string: string): void {
+        this.grid = Sudoku.new_grid(0);
+        this.fixed = Sudoku.new_grid(false);
+
+        let lines = sudoku_string.trim().split('\n');
+        lines = lines.map(s => s.trim());
+        if (lines.length !== 9)
+            throw new Error('There must be 9 lines.');
+
+        for (let i = 0; i < lines.length; i++) {
+            if (lines[i].length !== 9) {
+                throw new Error(`There must be 9 characters in line ${i + 1}`);
+            }
         }
 
         for (let row = 0; row < 9; row++) {
-            if (rows[row].length < 9) {
-                throw new Error(`Length of row ${row + 1} needs to be at least 9 characters (${rows[row].length} given).`);
-            }
-
             for (let col = 0; col < 9; col++) {
-                let value = parseInt(rows[row][col]);
+                let value = parseInt(lines[row][col]);
 
-                if (!this.validNumber(row, col, value)) {
-                    throw new Error(`Number in row ${row + 1} and column ${col + 1} cannot be placed, because it does not satisfy the Sudoku constraints.`);
+                if (!isNaN(value) && value !== 0) {
+                    this.grid[row][col] = value;
+                    this.fixed[row][col] = true;
                 }
-
-                this.grid[row][col] = value;
             }
         }
     }
 
-    validNumber(row: number, col: number, value: number): boolean {
-
-        if (isNaN(value) || value <= 0 || value > 9)
-            return false;
-
-        // check the row and the column
+    private legal_number(row: number, col: number, number: number): boolean {
+        // check rows and columns
         for (let i = 0; i < 9; i++) {
-            if (this.grid[row][i] === value)
+            if (i !== row && this.grid[i][col] === number)
                 return false;
-
-            if (this.grid[i][col] === value)
+            if (i !== col && this.grid[row][i] === number)
                 return false;
         }
 
-        // check 3*3 block
-        let rowStart = row - row % 3;
-        let colStart = col - col % 3;
-        for (let i = 0; i < 3; i++) {
-            for (let j = 0; j < 3; j++) {
-                if (this.grid[rowStart + i][colStart + j] === value)
+        // check the block
+        let row_start = row - row % 3;
+        let col_start = col - col % 3;
+
+        for (let r = row_start; r < row_start + 3; r++) {
+            for (let c = col_start; c < col_start + 3; c++) {
+                if (r === row && c === col)
+                    continue;
+
+                if (this.grid[r][c] === number) {
                     return false;
+                }
             }
         }
 
         return true;
+    }
+
+    public solve(): number[][][] {
+        this.solutions = [];
+
+        return this.solutions;
+    }
+
+    private backtrack(row: number, col: number): void {
+        if (col === 9) {
+            col = 0;
+            row += 1;
+        }
+
+        if (row === 9) {
+            return;
+        }
+
+        if (this.fixed[row][col]) {
+            if (row === 8 && col === 8)
+                this.solutions.push(Sudoku.grid_deep_copy<number>(this.grid));
+            else
+                this.backtrack(row, col+1);
+            return;
+        }
+
+        for (let i = 1; i <= 9; i++) {
+            let legal = this.legal_number(row, col, i);
+
+            if (!legal)
+                continue;
+
+            this.grid[row][col] = i;
+            if (row == 8 && col == 8) {
+                this.solutions.push(Sudoku.grid_deep_copy<number>(this.grid));
+                continue;
+            }
+
+            this.backtrack(row, col+1);
+            this.grid[row][col] = 0;
+        }
+    }
+
+    constructor(sudoku_string: string) {
+        if (sudoku_string) {
+            this.parse_sudoku(sudoku_string);
+        }
     }
 }

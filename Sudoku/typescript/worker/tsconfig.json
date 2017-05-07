@@ -8,9 +8,10 @@
         "lib": [
             "ES6",
             "WebWorker"
-        ]
+        ],
+        "target": "es5"
     },
-    "files": [        
+    "files": [
         "worker.ts"
     ]
 }

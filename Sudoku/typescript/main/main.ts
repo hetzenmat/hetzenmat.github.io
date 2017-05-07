@@ -24,7 +24,7 @@ function toID(row: number, col: number): string {
 function createGrid(): void {
     grid.innerHTML = '';
     gridElements = [];
-
+    
     for (let row = 0; row < 9; row++) {
         let tr = document.createElement('tr');
         gridElements[row] = [];
