@@ -1,1 +1,1 @@
-/// <reference path="Sudoku.ts"/>
+/// <reference path="../Sudoku.ts"/>

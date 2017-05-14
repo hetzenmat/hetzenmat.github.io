@@ -86,6 +86,28 @@ class Sudoku {
         }
     }
 
+    public get Grid(): number[][] {
+        return Sudoku.grid_deep_copy<number>(this.grid);
+    }
+
+    public set_number(row: number, col: number, number: number): boolean {
+        if (row < 0 || row > 8 || col < 0 || col > 8 || number < 1 || number > 9)
+            return false;
+
+        if (!this.legal_number(row, col, number))
+            return false;
+
+        this.grid[row][col] = number;
+        return true;
+    }
+
+    public reset_number(row: number, col: number): void {
+        if (row < 0 || row > 8 || col < 0 || col > 9)
+            return;
+
+        this.grid[row][col] = 0;
+    }
+
     private legal_number(row: number, col: number, number: number): boolean {
         // check rows and columns
         for (let i = 0; i < 9; i++) {
@@ -115,7 +137,7 @@ class Sudoku {
 
     public solve(): number[][][] {
         this.solutions = [];
-
+        this.backtrack(0, 0);
         return this.solutions;
     }
 
@@ -154,7 +176,7 @@ class Sudoku {
         }
     }
 
-    constructor(sudoku_string: string) {
+    constructor(sudoku_string?: string) {
         if (sudoku_string) {
             this.parse_sudoku(sudoku_string);
         }

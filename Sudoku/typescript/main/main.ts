@@ -1,3 +1,5 @@
+/// <reference path="../Sudoku.ts"/>
+
 if (document.readyState !== 'loading')
     documentReady();
 else
@@ -6,6 +8,7 @@ else
 let grid: HTMLTableElement;
 let gridElements: HTMLTableCellElement[][];
 let resizeTimeout: number;
+let sudoku: Sudoku;
 
 function documentReady(): void {
     grid = <HTMLTableElement>document.getElementById('grid');
@@ -17,31 +20,59 @@ function documentReady(): void {
     };
 }
 
+function new_sudoku(): void {
+    sudoku = new Sudoku();
+}
+
 function toID(row: number, col: number): string {
-    return `${row}|${col}`;
+    return `cell-${row}-${col}`;
 }
 
 function createGrid(): void {
     grid.innerHTML = '';
     gridElements = [];
-    
+
     for (let row = 0; row < 9; row++) {
         let tr = document.createElement('tr');
         gridElements[row] = [];
 
         for (let col = 0; col < 9; col++) {
             let td = document.createElement('td');
+            td.setAttribute('id', `cell-${row}-${col}`);
             td.tabIndex = row * 9 + col;
             td.onkeydown = (event: KeyboardEvent) => {
 
-                if (event.key === 'Backspace') {
-                    td.innerHTML = '';
-                    return;
+                switch (event.key) {
+                    case 'Backspace':
+                        td.innerHTML = '';
+                        return;
+
+                    case 'ArrowUp':
+                        let newRow = row - 1;
+                        if (newRow < 0)
+                            newRow = 8;
+                        document.getElementById(toID(newRow, col)).focus();
+                        return;
+
+                    case 'ArrowDown':
+                        document.getElementById(toID((row + 1) % 9, col)).focus();
+                        return;
+
+                    case 'ArrowLeft':
+                        let newCol = col - 1;
+                        if (newCol < 0)
+                            newCol = 8;
+                        document.getElementById(toID(row, newCol)).focus();
+                        return;
+
+                    case 'ArrowRight':
+                        document.getElementById(toID(row, (col + 1) % 9)).focus();
+                        return;
                 }
 
                 let key = parseInt(event.key);
-                if (!isNaN(key)) {
-                    td.innerHTML = key.toString();
+                if (!isNaN(key) && key !== 0) {
+                    td.innerHTML = `<b>${key}</b>`;
                 }
             };
             td.onfocus = () => td.style.backgroundColor = '#b3b3b3';
@@ -59,7 +90,6 @@ function createGrid(): void {
                 td.classList.add('border-bottom');
             }
 
-            td.setAttribute('id', toID(row, col));
             gridElements[row][col] = td;
             tr.appendChild(td);
         }
@@ -70,7 +100,7 @@ function createGrid(): void {
 }
 
 function updateTable(): void {
-    let em = 1;
+    let em = 0.8;
     while (gridElements[0][0].offsetHeight !== gridElements[0][0].offsetWidth) {
         let cellWidth = gridElements[0][0].offsetWidth;
         for (let i = 0; i < 9; i++) {
