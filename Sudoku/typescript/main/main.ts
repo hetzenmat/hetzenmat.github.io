@@ -18,9 +18,11 @@ function documentReady(): void {
         clearTimeout(resizeTimeout);
         resizeTimeout = setTimeout(updateTable, 100);
     };
+
+    newSudoku();
 }
 
-function new_sudoku(): void {
+function newSudoku(): void {
     sudoku = new Sudoku();
 }
 
@@ -44,6 +46,8 @@ function createGrid(): void {
 
                 switch (event.key) {
                     case 'Backspace':
+                    case ' ':
+                        sudoku.resetNumber(row, col);
                         td.innerHTML = '';
                         return;
 
@@ -72,7 +76,18 @@ function createGrid(): void {
 
                 let key = parseInt(event.key);
                 if (!isNaN(key) && key !== 0) {
-                    td.innerHTML = `<b>${key}</b>`;
+
+                    let [success, conflictRow, conflictCol] = sudoku.setNumber(row, col, key);
+                    if (success) {
+                        td.innerHTML = `<b>${key}</b>`;
+                    } else {
+                        // mark conflicting cell
+                        let conflictCell = document.getElementById(toID(conflictRow, conflictCol));
+                        conflictCell.style.backgroundColor = 'red';
+
+                        // reset the style after 3 seconds
+                        setTimeout(() => conflictCell.style.backgroundColor = '', 3000);
+                    }
                 }
             };
             td.onfocus = () => td.style.backgroundColor = '#b3b3b3';

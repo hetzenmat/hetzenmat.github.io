@@ -4,11 +4,11 @@ class Sudoku {
     private fixed: boolean[][];
     private solutions: number[][][];
 
-    private static get line_seperator(): string {
+    private static get lineSeperator(): string {
         return '+---+---+---+';
     }
 
-    private static new_grid(value: any, rows=9, cols=9): any[][] {
+    private static newGrid(value: any, rows=9, cols=9): any[][] {
         let grid: any[][] = [];
 
         for (let row = 0; row < rows; row++) {
@@ -22,7 +22,7 @@ class Sudoku {
         return grid;
     }
 
-    private static grid_deep_copy<T>(grid: T[][], rows=9, cols=9): T[][] {
+    private static gridDeepCopy<T>(grid: T[][], rows=9, cols=9): T[][] {
         let copy: T[][] = [];
 
         for (let row = 0; row < 9; row++) {
@@ -36,12 +36,12 @@ class Sudoku {
         return copy;
     }
 
-    public static sudoku_to_string(grid: number[][], placeholder='.'): string {
+    public static sudokuToString(grid: number[][], placeholder='.'): string {
         let result = '';
 
         for (let row = 0; row < 9; row++) {
             if (row % 3 === 0)
-                result += Sudoku.line_seperator + '\n';
+                result += Sudoku.lineSeperator + '\n';
 
             for (let col = 0; col < 9; col++) {
                 if (col % 3 === 0)
@@ -55,13 +55,13 @@ class Sudoku {
             result += '\n';
         }
 
-        result += Sudoku.line_seperator + '\n';
+        result += Sudoku.lineSeperator + '\n';
         return result;
     }
 
-    public parse_sudoku(sudoku_string: string): void {
-        this.grid = Sudoku.new_grid(0);
-        this.fixed = Sudoku.new_grid(false);
+    public parseSudoku(sudoku_string: string): void {
+        this.grid = Sudoku.newGrid(0);
+        this.fixed = Sudoku.newGrid(false);
 
         let lines = sudoku_string.trim().split('\n');
         lines = lines.map(s => s.trim());
@@ -87,28 +87,55 @@ class Sudoku {
     }
 
     public get Grid(): number[][] {
-        return Sudoku.grid_deep_copy<number>(this.grid);
+        return Sudoku.gridDeepCopy<number>(this.grid);
     }
 
-    public set_number(row: number, col: number, number: number): boolean {
+    public setNumber(row: number, col: number, number: number): [boolean, number, number] {
         if (row < 0 || row > 8 || col < 0 || col > 8 || number < 1 || number > 9)
-            return false;
+            throw new Error(`Row, col or number does not match the given constraints (${row}, ${col}, ${number} given).`);
 
-        if (!this.legal_number(row, col, number))
-            return false;
+        if (!this.legalNumber(row, col, number)) {
+            let [r, c] = this.findConflictingNumber(row, col, number);
+            return [false, r, c];
+        }
 
         this.grid[row][col] = number;
-        return true;
+        return [true, 0, 0];
     }
 
-    public reset_number(row: number, col: number): void {
+    public resetNumber(row: number, col: number): void {
         if (row < 0 || row > 8 || col < 0 || col > 9)
             return;
 
         this.grid[row][col] = 0;
     }
 
-    private legal_number(row: number, col: number, number: number): boolean {
+    private findConflictingNumber(row: number, col: number, number: number): [number, number] {
+        for (let i = 0; i < 9; i++) {
+            if (i !== row && this.grid[i][col] === number)
+                return [i, col];
+            if (i !== col && this.grid[row][i] === number)
+                return [row, i];
+        }
+
+        let row_start = row - row % 3;
+        let col_start = col - col % 3;
+
+        for (let r = row_start; r < row_start + 3; r++) {
+            for (let c = col_start; c < col_start + 3; c++) {
+                if (r === row && c === col)
+                    continue;
+
+                if (this.grid[r][c] === number) {
+                    return [r, c];
+                }
+            }
+        }
+
+        return void 0;
+    }
+
+    private legalNumber(row: number, col: number, number: number): boolean {
         // check rows and columns
         for (let i = 0; i < 9; i++) {
             if (i !== row && this.grid[i][col] === number)
@@ -153,21 +180,21 @@ class Sudoku {
 
         if (this.fixed[row][col]) {
             if (row === 8 && col === 8)
-                this.solutions.push(Sudoku.grid_deep_copy<number>(this.grid));
+                this.solutions.push(Sudoku.gridDeepCopy<number>(this.grid));
             else
                 this.backtrack(row, col+1);
             return;
         }
 
         for (let i = 1; i <= 9; i++) {
-            let legal = this.legal_number(row, col, i);
+            let legal = this.legalNumber(row, col, i);
 
             if (!legal)
                 continue;
 
             this.grid[row][col] = i;
             if (row == 8 && col == 8) {
-                this.solutions.push(Sudoku.grid_deep_copy<number>(this.grid));
+                this.solutions.push(Sudoku.gridDeepCopy<number>(this.grid));
                 continue;
             }
 
@@ -178,7 +205,9 @@ class Sudoku {
 
     constructor(sudoku_string?: string) {
         if (sudoku_string) {
-            this.parse_sudoku(sudoku_string);
+            this.parseSudoku(sudoku_string);
+        } else {
+            this.grid = Sudoku.newGrid(0);
         }
     }
 }
