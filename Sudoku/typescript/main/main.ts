@@ -10,20 +10,52 @@ let gridElements: HTMLTableCellElement[][];
 let resizeTimeout: number;
 let sudoku: Sudoku;
 
+let elementCache: Map<string, HTMLElement>;
+
+function getElement(query: string): HTMLElement {
+    if (elementCache.has(query))
+        return elementCache.get(query);
+
+    let elem = document.getElementById(query);
+    elementCache.set(query, elem);
+    return elem;
+}
+
 function documentReady(): void {
-    grid = <HTMLTableElement>document.getElementById('grid');
+    elementCache = new Map<string, HTMLElement>();
+    grid = <HTMLTableElement>getElement('grid');
     createGrid();
+    sudoku = new Sudoku();
 
     window.onresize = () => {
         clearTimeout(resizeTimeout);
         resizeTimeout = setTimeout(updateTable, 100);
     };
 
-    newSudoku();
-}
+    getElement('button-new-sudoku').onclick = (mouseEvent: MouseEvent) => {
+        sudoku = new Sudoku();
+        for (let i = 0; i < 9; i++) {
+            for (let j = 0; j < 9; j++) {
+                (<HTMLElement>grid.childNodes[i].childNodes[j]).innerHTML = '';
+            }
+        }
+    };
 
-function newSudoku(): void {
-    sudoku = new Sudoku();
+    let closeSpans = document.querySelectorAll('.modal-content .close');
+    for (let i = 0; i < closeSpans.length; i++) {
+        let elem = <HTMLElement>closeSpans[i];
+        elem.onclick = (e) => elem.parentElement.parentElement.style.display = 'none';
+    }
+
+    getElement('button-import').onclick = (mouseEvent: MouseEvent) => {
+        // TODO
+    };
+
+    getElement('button-export').onclick = (mouseEvent: MouseEvent) => {
+        getElement('export-modal').style.display = 'block';
+        let s = sudoku.toString();
+        (<HTMLTextAreaElement>document.querySelector('#export-modal textarea')).value = s;
+    };
 }
 
 function toID(row: number, col: number): string {
@@ -55,22 +87,22 @@ function createGrid(): void {
                         let newRow = row - 1;
                         if (newRow < 0)
                             newRow = 8;
-                        document.getElementById(toID(newRow, col)).focus();
+                        getElement(toID(newRow, col)).focus();
                         return;
 
                     case 'ArrowDown':
-                        document.getElementById(toID((row + 1) % 9, col)).focus();
+                        getElement(toID((row + 1) % 9, col)).focus();
                         return;
 
                     case 'ArrowLeft':
                         let newCol = col - 1;
                         if (newCol < 0)
                             newCol = 8;
-                        document.getElementById(toID(row, newCol)).focus();
+                        getElement(toID(row, newCol)).focus();
                         return;
 
                     case 'ArrowRight':
-                        document.getElementById(toID(row, (col + 1) % 9)).focus();
+                        getElement(toID(row, (col + 1) % 9)).focus();
                         return;
                 }
 
@@ -82,7 +114,7 @@ function createGrid(): void {
                         td.innerHTML = `<b>${key}</b>`;
                     } else {
                         // mark conflicting cell
-                        let conflictCell = document.getElementById(toID(conflictRow, conflictCol));
+                        let conflictCell = getElement(toID(conflictRow, conflictCol));
                         conflictCell.style.backgroundColor = 'red';
 
                         // reset the style after 3 seconds

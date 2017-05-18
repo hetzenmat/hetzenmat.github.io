@@ -110,6 +110,10 @@ class Sudoku {
         this.grid[row][col] = 0;
     }
 
+    public toString(): string {
+        return Sudoku.sudokuToString(this.grid);
+    }
+
     private findConflictingNumber(row: number, col: number, number: number): [number, number] {
         for (let i = 0; i < 9; i++) {
             if (i !== row && this.grid[i][col] === number)

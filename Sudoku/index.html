@@ -12,9 +12,35 @@
     <div class="content">
         <h1>Sudoku Solver</h1>
 
-        <table id="grid" align="center">
-        </table>
+            <div id="export-modal" class="modal">
+                <div class="modal-content">
+                    <span class="close"></span><br>
+                    <p>
+                        <textarea rows="9" cols="9"></textarea> 
+                    </p>
+                </div>
+            </div>
 
+            <div class="div-table">
+                <div>
+                    <input type="button"
+                           value="New Sudoku" 
+                           id="button-new-sudoku">
+                </div>
+                <div>
+                    <input type="button"
+                           value="Import"
+                           id="button-import">
+                </div>
+                <div>
+                    <input type="button"
+                           value="Export"
+                           id="button-export">
+                </div>
+            </div>
+
+        <p><table id="grid" align="center">
+        </table></p>
     </div>
     <script src="js/main.js"></script>
 </body>

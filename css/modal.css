@@ -35,3 +35,8 @@
     text-decoration: none;
     cursor: pointer;
 }
+
+.close:after {
+    display: inline-block;
+    content: "\00d7";
+}
