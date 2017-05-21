@@ -58,8 +58,14 @@ class Sudoku {
             for (let col = 0; col < 9; col++) {
                 let value = parseInt(lines[row][col]);
                 if (!isNaN(value) && value !== 0) {
-                    this.grid[row][col] = value;
-                    this.fixed[row][col] = true;
+                    let [success, conflictRow, conflictCol] = this.setNumber(row, col, value);
+                    if (success) {
+                        this.grid[row][col] = value;
+                        this.fixed[row][col] = true;
+                    }
+                    else {
+                        throw new Error(`Value at row ${row + 1} and column ${col + 1} conflicts with value at row ${conflictRow + 1} and column ${conflictCol + 1}.`);
+                    }
                 }
             }
         }
@@ -83,6 +89,16 @@ class Sudoku {
         this.grid[row][col] = 0;
     }
     toString() {
+        let str = '';
+        for (let i = 0; i < 9; i++) {
+            for (let j = 0; j < 9; j++) {
+                str += this.grid[i][j];
+            }
+            str += '\n';
+        }
+        return str.trim();
+    }
+    toFormattedString() {
         return Sudoku.sudokuToString(this.grid);
     }
     findConflictingNumber(row, col, number) {
@@ -130,6 +146,9 @@ class Sudoku {
         this.backtrack(0, 0);
         return this.solutions;
     }
+    clear() {
+        this.grid = Sudoku.newGrid(0);
+    }
     backtrack(row, col) {
         if (col === 9) {
             col = 0;
@@ -163,7 +182,7 @@ class Sudoku {
             this.parseSudoku(sudoku_string);
         }
         else {
-            this.grid = Sudoku.newGrid(0);
+            this.clear();
         }
     }
 }
@@ -200,17 +219,52 @@ function documentReady() {
             }
         }
     };
+    let modalCloseListener = (keyboardEvent) => {
+        if (keyboardEvent.key === 'Escape') {
+            let elems = document.querySelectorAll('.modal');
+            for (let elem of elems) {
+                elem.style.display = 'none';
+            }
+            document.removeEventListener('keydown', modalCloseListener);
+            keyboardEvent.preventDefault();
+        }
+    };
     let closeSpans = document.querySelectorAll('.modal-content .close');
     for (let i = 0; i < closeSpans.length; i++) {
         let elem = closeSpans[i];
-        elem.onclick = (e) => elem.parentElement.parentElement.style.display = 'none';
+        elem.onclick = (e) => {
+            elem.parentElement.parentElement.style.display = 'none';
+            document.removeEventListener('keydown', modalCloseListener);
+        };
     }
     getElement('button-import').onclick = (mouseEvent) => {
+        getElement('modal-import').style.display = 'block';
+        document.addEventListener('keydown', modalCloseListener);
+        let errorElement = getElement('modal-import-error');
+        errorElement.parentElement.style.display = 'none';
+        getElement('button-import-ok').onclick = (mouseEvent) => {
+            try {
+                sudoku.parseSudoku(getElement('modal-import-textarea').value);
+                document.removeEventListener('keydown', modalCloseListener);
+                getElement('modal-import').style.display = 'none';
+            }
+            catch (error) {
+                if (error instanceof Error) {
+                    let message = error.message;
+                    errorElement.innerHTML = message;
+                    errorElement.parentElement.style.display = '';
+                }
+                sudoku.clear();
+            }
+            finally {
+                renderSudoku();
+            }
+        };
     };
     getElement('button-export').onclick = (mouseEvent) => {
-        getElement('export-modal').style.display = 'block';
-        let s = sudoku.toString();
-        document.querySelector('#export-modal textarea').value = s;
+        getElement('modal-export').style.display = 'block';
+        document.addEventListener('keydown', modalCloseListener);
+        getElement('modal-export-textarea').value = sudoku.toString();
     };
 }
 function toID(row, col) {
@@ -237,19 +291,19 @@ function createGrid() {
                         let newRow = row - 1;
                         if (newRow < 0)
                             newRow = 8;
-                        getElement(toID(newRow, col)).focus();
+                        gridElements[newRow][col].focus();
                         return;
                     case 'ArrowDown':
-                        getElement(toID((row + 1) % 9, col)).focus();
+                        gridElements[(row + 1) % 9][col].focus();
                         return;
                     case 'ArrowLeft':
                         let newCol = col - 1;
                         if (newCol < 0)
                             newCol = 8;
-                        getElement(toID(row, newCol)).focus();
+                        gridElements[row][newCol].focus();
                         return;
                     case 'ArrowRight':
-                        getElement(toID(row, (col + 1) % 9)).focus();
+                        gridElements[row][(col + 1) % 9].focus();
                         return;
                 }
                 let key = parseInt(event.key);
@@ -297,5 +351,18 @@ function updateTable() {
             }
         }
         em -= 0.1;
+    }
+}
+function renderSudoku() {
+    for (let row = 0; row < 9; row++) {
+        for (let col = 0; col < 9; col++) {
+            let gridValue = sudoku.Grid[row][col];
+            if (gridValue !== 0) {
+                gridElements[row][col].innerHTML = `<b>${gridValue}</b>`;
+            }
+            else {
+                gridElements[row][col].innerHTML = '';
+            }
+        }
     }
 }

@@ -79,8 +79,15 @@ class Sudoku {
                 let value = parseInt(lines[row][col]);
 
                 if (!isNaN(value) && value !== 0) {
-                    this.grid[row][col] = value;
-                    this.fixed[row][col] = true;
+
+                    let [success, conflictRow, conflictCol] = this.setNumber(row, col, value);
+
+                    if (success) {
+                        this.grid[row][col] = value;
+                        this.fixed[row][col] = true;
+                    } else {
+                        throw new Error(`Value at row ${row + 1} and column ${col + 1} conflicts with value at row ${conflictRow + 1} and column ${conflictCol + 1}.`);
+                    }
                 }
             }
         }
@@ -111,6 +118,17 @@ class Sudoku {
     }
 
     public toString(): string {
+        let str = '';
+        for (let i = 0; i < 9; i++) {
+            for (let j = 0; j < 9; j++) {
+                str += this.grid[i][j];
+            }
+            str += '\n';
+        } 
+        return str.trim();
+    }
+
+    public toFormattedString(): string {
         return Sudoku.sudokuToString(this.grid);
     }
 
@@ -172,6 +190,10 @@ class Sudoku {
         return this.solutions;
     }
 
+    public clear(): void {
+        this.grid = Sudoku.newGrid(0);
+    }
+
     private backtrack(row: number, col: number): void {
         if (col === 9) {
             col = 0;
@@ -211,7 +233,7 @@ class Sudoku {
         if (sudoku_string) {
             this.parseSudoku(sudoku_string);
         } else {
-            this.grid = Sudoku.newGrid(0);
+            this.clear();
         }
     }
 }

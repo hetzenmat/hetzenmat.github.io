@@ -41,20 +41,55 @@ function documentReady(): void {
         }
     };
 
+    let modalCloseListener = (keyboardEvent: KeyboardEvent) => {
+        if (keyboardEvent.key === 'Escape') {
+            let elems = document.querySelectorAll('.modal');
+            for (let elem of elems) {
+                (<HTMLElement>elem).style.display = 'none';
+            }
+            document.removeEventListener('keydown', modalCloseListener);
+            keyboardEvent.preventDefault();
+        }
+    };
+
     let closeSpans = document.querySelectorAll('.modal-content .close');
     for (let i = 0; i < closeSpans.length; i++) {
         let elem = <HTMLElement>closeSpans[i];
-        elem.onclick = (e) => elem.parentElement.parentElement.style.display = 'none';
+        elem.onclick = (e) => {
+            elem.parentElement.parentElement.style.display = 'none';
+            document.removeEventListener('keydown', modalCloseListener);
+        };
     }
 
     getElement('button-import').onclick = (mouseEvent: MouseEvent) => {
-        // TODO
+        getElement('modal-import').style.display = 'block';
+        document.addEventListener('keydown', modalCloseListener);
+        let errorElement = getElement('modal-import-error');
+        errorElement.parentElement.style.display = 'none';
+
+        getElement('button-import-ok').onclick = (mouseEvent: MouseEvent) => {
+            try {
+                sudoku.parseSudoku((<HTMLTextAreaElement>getElement('modal-import-textarea')).value);
+                document.removeEventListener('keydown', modalCloseListener);
+                getElement('modal-import').style.display = 'none';
+            } catch (error) {
+                if (error instanceof Error) {
+                    let message = (<Error>error).message;
+                    
+                    errorElement.innerHTML = message;
+                    errorElement.parentElement.style.display = '';
+                }
+                sudoku.clear();
+            } finally {
+                renderSudoku();
+            }
+        };
     };
 
     getElement('button-export').onclick = (mouseEvent: MouseEvent) => {
-        getElement('export-modal').style.display = 'block';
-        let s = sudoku.toString();
-        (<HTMLTextAreaElement>document.querySelector('#export-modal textarea')).value = s;
+        getElement('modal-export').style.display = 'block';
+        document.addEventListener('keydown', modalCloseListener);
+        (<HTMLTextAreaElement>getElement('modal-export-textarea')).value = sudoku.toString();
     };
 }
 
@@ -87,22 +122,22 @@ function createGrid(): void {
                         let newRow = row - 1;
                         if (newRow < 0)
                             newRow = 8;
-                        getElement(toID(newRow, col)).focus();
+                        gridElements[newRow][col].focus();
                         return;
 
                     case 'ArrowDown':
-                        getElement(toID((row + 1) % 9, col)).focus();
+                        gridElements[(row + 1) % 9][col].focus();
                         return;
 
                     case 'ArrowLeft':
                         let newCol = col - 1;
                         if (newCol < 0)
                             newCol = 8;
-                        getElement(toID(row, newCol)).focus();
+                        gridElements[row][newCol].focus();
                         return;
 
                     case 'ArrowRight':
-                        getElement(toID(row, (col + 1) % 9)).focus();
+                        gridElements[row][(col + 1) % 9].focus();
                         return;
                 }
 
@@ -158,5 +193,18 @@ function updateTable(): void {
         }
 
         em -= 0.1;
+    }
+}
+
+function renderSudoku(): void {
+    for (let row = 0; row < 9; row++) {
+        for (let col = 0; col < 9; col++) {
+            let gridValue = sudoku.Grid[row][col];
+            if (gridValue !== 0) {
+                gridElements[row][col].innerHTML = `<b>${gridValue}</b>`;
+            } else {
+                gridElements[row][col].innerHTML = '';
+            }
+        }
     }
 }
