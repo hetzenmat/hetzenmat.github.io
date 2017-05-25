@@ -91,6 +91,11 @@ function documentReady(): void {
         document.addEventListener('keydown', modalCloseListener);
         (<HTMLTextAreaElement>getElement('modal-export-textarea')).value = sudoku.toString();
     };
+
+    let buttonSolve = getElement('button-solve');
+    buttonSolve.onclick = (mouseEvent: MouseEvent) => {
+        
+    };
 }
 
 function toID(row: number, col: number): string {

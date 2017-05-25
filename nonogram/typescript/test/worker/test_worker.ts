@@ -1,6 +1,6 @@
-/// <reference path="../examples.ts"/>
+/// <reference path="../../examples.ts"/>
 /// <reference path="../solutions.ts"/>
-// <reference path="Puzzle.ts"/>
+/// <reference path="../../Puzzle.ts"/>
 
 onmessage = function (event : MessageEvent) : void {
     if (event.data === 'start') {
@@ -33,7 +33,7 @@ function testCase(count : number, name : string) : void {
     let start = new Date().getTime();
 
     let puzzle = new Puzzle(examples[name]);
-    puzzle.solve();
+    puzzle.solve(); // TODO
     let duration = (new Date().getTime() - start) / 1000;
 
     append_text(`<p>Took ${duration} seconds</p>`);

@@ -1,4 +1,4 @@
-/// <reference path="Puzzle.ts"/>
+/// <reference path="../../Puzzle.ts"/>
 
 let puzzle : Puzzle;
 

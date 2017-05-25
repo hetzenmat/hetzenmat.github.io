@@ -1,5 +1,5 @@
-/// <reference path="../examples.ts"/>
-/// <reference path="../types.ts"/>
+/// <reference path="../../examples.ts"/>
+/// <reference path="../../types.ts"/>
 
 class UserInterface {
     hover_background_color: string;

@@ -3,13 +3,10 @@
         "noImplicitAny": true,
         "removeComments": true,
         "preserveConstEnums": true,
-        "outFile": "tsc.js",
-        "sourceMap": true
+        "outFile": "../../test/main.js",
+        "sourceMap": false
     },
     "files": [
-        "tests.ts",
-        "../examples.ts",
-        "solutions.ts",
-        "../types.ts"
+        "tests.ts"
     ]
 }
