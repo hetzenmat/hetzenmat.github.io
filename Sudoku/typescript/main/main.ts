@@ -9,9 +9,10 @@ let grid: HTMLTableElement;
 let gridElements: HTMLTableCellElement[][];
 let resizeTimeout: number;
 let sudoku: Sudoku;
-let lastCandidate: Candidate = null;
-let displayProgressIntervalID: number;
 let elementCache: Map<string, HTMLElement>;
+let solverWorker: Worker;
+let solutions: number[][][];
+let currentSolution: number;
 
 function getElement(query: string): HTMLElement {
     if (elementCache.has(query))
@@ -20,6 +21,18 @@ function getElement(query: string): HTMLElement {
     let elem = document.getElementById(query);
     elementCache.set(query, elem);
     return elem;
+}
+
+function cleanUp() {
+    sudoku = new Sudoku();
+    solutions = void 0;
+    if (solverWorker)
+        solverWorker.terminate();
+    solverWorker = void 0;
+    getElement('span-solution-text').innerHTML = '';
+    getElement('button-previous-solution').style.display = 'none';
+    getElement('button-next-solution').style.display = 'none';
+    getElement('button-solve').removeAttribute('disabled');
 }
 
 function documentReady(): void {
@@ -34,7 +47,9 @@ function documentReady(): void {
     };
 
     getElement('button-new-sudoku').onclick = (mouseEvent: MouseEvent) => {
-        sudoku = new Sudoku();
+        
+        cleanUp();
+
         for (let i = 0; i < 9; i++) {
             for (let j = 0; j < 9; j++) {
                 (<HTMLElement>grid.childNodes[i].childNodes[j]).innerHTML = '';
@@ -69,6 +84,7 @@ function documentReady(): void {
         errorElement.parentElement.style.display = 'none';
 
         getElement('button-import-ok').onclick = (mouseEvent: MouseEvent) => {
+            cleanUp();
             try {
                 sudoku.parseSudoku((<HTMLTextAreaElement>getElement('modal-import-textarea')).value);
                 document.removeEventListener('keydown', modalCloseListener);
@@ -95,34 +111,57 @@ function documentReady(): void {
 
     let buttonSolve = getElement('button-solve');
     buttonSolve.onclick = (mouseEvent: MouseEvent) => {
-        console.log('click');
-        let worker: Worker = new Worker('js/worker.js');
+        if (solutions)
+            return;
 
-        worker.onmessage = function(event: MessageEvent) {
+        buttonSolve.setAttribute('disabled', '');
+
+        solverWorker = new Worker('js/worker.js');
+        solverWorker.onmessage = function(event: MessageEvent) {
             console.log(event.data);
             switch (event.data.type) {
                 case 'candidate':
-                    lastCandidate = event.data;
-                    //gridElements[event.data.row][event.data.col].innerHTML = '' + event.data.number;
+                    let grid: number[][] = event.data.grid;
+                    for (let row = 0; row < 9; row++)
+                        for (let col = 0; col < 9; col++) {
+                            if (sudoku.Fixed[row][col])
+                                continue;
+                            
+                            gridElements[row][col].innerHTML = '' + grid[row][col];
+                        }
                     break;
 
                 case 'solutions':
+                    solutions = event.data.solutions;
+                    currentSolution = 0;
+                    if (solutions.length > 1) {
+                        getElement('button-previous-solution').style.display = 'inherit';
+                        getElement('button-next-solution').style.display = 'inherit';
+                    }
+
+                    renderSolution();
+
+                    buttonSolve.removeAttribute('disabled');
                     break;                
             }
         };
 
-        worker.postMessage({
-            sudokuString: sudoku.toString(),
-            viewProgress: (<HTMLInputElement>getElement('checkbox-view-progress')).value
+        solverWorker.postMessage({
+            sudokuString: sudoku.toString()
         });
-
-        displayProgressIntervalID = window.setInterval(displayProgress, 500);
     };
-}
 
-function displayProgress() {
-    if (lastCandidate)
-        gridElements[lastCandidate.row][lastCandidate.col].innerHTML = '' + lastCandidate.number;
+    getElement('button-previous-solution').onclick = (mouseEvent: MouseEvent) => {
+        currentSolution--;
+        if (currentSolution < 0)
+            currentSolution = solutions.length - 1;
+        renderSolution();
+    };
+
+    getElement('button-next-solution').onclick = (mouseEvent: MouseEvent) => {
+        currentSolution = (currentSolution + 1) % solutions.length;
+        renderSolution();
+    };
 }
 
 function toID(row: number, col: number): string {
@@ -178,7 +217,7 @@ function createGrid(): void {
 
                     let [success, conflictRow, conflictCol] = sudoku.setNumber(row, col, key);
                     if (success) {
-                        td.innerHTML = `<b>${key}</b>`;
+                        td.innerHTML = `<span style="font-weight: 900">${key}</span>`;
                     } else {
                         // mark conflicting cell
                         let conflictCell = getElement(toID(conflictRow, conflictCol));
@@ -233,10 +272,25 @@ function renderSudoku(): void {
         for (let col = 0; col < 9; col++) {
             let gridValue = sudoku.Grid[row][col];
             if (gridValue !== 0) {
-                gridElements[row][col].innerHTML = `<b>${gridValue}</b>`;
+                gridElements[row][col].innerHTML = `<span style="font-weight: 900;">${gridValue}</span>`;
             } else {
                 gridElements[row][col].innerHTML = '';
             }
         }
     }
+}
+
+function renderSolution(): void {
+
+    getElement('span-solution-text').innerHTML = `Solution ${currentSolution + 1}/${solutions.length}`;
+
+    let grid = solutions[currentSolution];
+
+    for (let row = 0; row < 9; row++)
+        for (let col = 0; col < 9; col++) {
+            if (sudoku.Fixed[row][col])
+                continue;
+
+            gridElements[row][col].innerHTML = '' + grid[row][col];
+        }
 }

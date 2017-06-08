@@ -6,8 +6,8 @@
         "outFile": "../../js/worker.js",
         "sourceMap": false,
         "lib": [
-            "ES6",
-            "WebWorker"
+            "es6",
+            "webworker"
         ],
         "target": "es5"
     },

@@ -89,14 +89,14 @@ var Sudoku = (function () {
     };
     Object.defineProperty(Sudoku.prototype, "Grid", {
         get: function () {
-            return Sudoku.gridDeepCopy(this.grid);
+            return this.grid;
         },
         enumerable: true,
         configurable: true
     });
     Object.defineProperty(Sudoku.prototype, "Fixed", {
         get: function () {
-            return Sudoku.gridDeepCopy(this.fixed);
+            return this.fixed;
         },
         enumerable: true,
         configurable: true
@@ -169,14 +169,14 @@ var Sudoku = (function () {
         }
         return true;
     };
-    Sudoku.prototype.solve = function (callback) {
-        this.callback = callback;
+    Sudoku.prototype.solve = function () {
         this.solutions = [];
         this.backtrack(0, 0);
         return this.solutions;
     };
     Sudoku.prototype.clear = function () {
         this.grid = Sudoku.newGrid(0);
+        this.fixed = Sudoku.newGrid(false);
     };
     Sudoku.prototype.backtrack = function (row, col) {
         if (col === 9) {
@@ -198,9 +198,6 @@ var Sudoku = (function () {
             if (!legal)
                 continue;
             this.grid[row][col] = i;
-            if (this.callback) {
-                this.callback(i, row, col);
-            }
             if (row == 8 && col == 8) {
                 this.solutions.push(Sudoku.gridDeepCopy(this.grid));
                 continue;
@@ -212,24 +209,10 @@ var Sudoku = (function () {
     return Sudoku;
 }());
 var sudoku;
-function reportCandidate(number, row, col) {
-    postMessage({
-        type: 'candidate',
-        number: number,
-        row: row,
-        col: col
-    });
-}
 onmessage = function (event) {
     sudoku = new Sudoku(event.data.sudokuString);
-    postMessage(event.data.sudokuString);
     var solutions;
-    if (event.data.viewProgress) {
-        solutions = sudoku.solve(reportCandidate);
-    }
-    else {
-        solutions = sudoku.solve();
-    }
+    solutions = sudoku.solve();
     postMessage({
         type: 'solutions',
         solutions: solutions,

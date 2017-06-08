@@ -41,3 +41,11 @@ textarea {
     font-size: 1.5em;
 }
 
+input[type="button"][disabled]:hover {
+    cursor: not-allowed;
+}
+
+/* initially hidden controls */
+input[type=button][value=">>"], input[type=button][value="<<"] {
+    display: none;
+}

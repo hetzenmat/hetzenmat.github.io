@@ -1,5 +1,5 @@
 interface CallbackFunction {
-    (number: number, row: number, col: number): void;
+    (grid: number[][]): void;
 }
 
 interface Candidate {
@@ -105,11 +105,11 @@ class Sudoku {
     }
 
     public get Grid(): number[][] {
-        return Sudoku.gridDeepCopy<number>(this.grid);
+        return this.grid;
     }
 
     public get Fixed(): boolean[][] {
-        return Sudoku.gridDeepCopy<boolean>(this.fixed);
+        return this.fixed;
     }
 
     public setNumber(row: number, col: number, number: number): [boolean, number, number] {
@@ -199,9 +199,7 @@ class Sudoku {
         return true;
     }
 
-    public solve(callback?: CallbackFunction): number[][][] {
-        this.callback = callback;
-
+    public solve(): number[][][] {
         this.solutions = [];
         this.backtrack(0, 0);
         return this.solutions;
@@ -209,6 +207,7 @@ class Sudoku {
 
     public clear(): void {
         this.grid = Sudoku.newGrid(0);
+        this.fixed = Sudoku.newGrid(false);
     }
 
     private backtrack(row: number, col: number): void {
@@ -239,11 +238,6 @@ class Sudoku {
                 continue;
             
             this.grid[row][col] = i;
-
-            // report the current candidate
-            if (this.callback) {
-                this.callback(i, row, col); 
-            }
 
             // push a valid solution
             if (row == 8 && col == 8) {

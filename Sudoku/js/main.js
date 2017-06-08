@@ -71,10 +71,10 @@ class Sudoku {
         }
     }
     get Grid() {
-        return Sudoku.gridDeepCopy(this.grid);
+        return this.grid;
     }
     get Fixed() {
-        return Sudoku.gridDeepCopy(this.fixed);
+        return this.fixed;
     }
     setNumber(row, col, number) {
         if (row < 0 || row > 8 || col < 0 || col > 8 || number < 1 || number > 9)
@@ -144,14 +144,14 @@ class Sudoku {
         }
         return true;
     }
-    solve(callback) {
-        this.callback = callback;
+    solve() {
         this.solutions = [];
         this.backtrack(0, 0);
         return this.solutions;
     }
     clear() {
         this.grid = Sudoku.newGrid(0);
+        this.fixed = Sudoku.newGrid(false);
     }
     backtrack(row, col) {
         if (col === 9) {
@@ -173,9 +173,6 @@ class Sudoku {
             if (!legal)
                 continue;
             this.grid[row][col] = i;
-            if (this.callback) {
-                this.callback(i, row, col);
-            }
             if (row == 8 && col == 8) {
                 this.solutions.push(Sudoku.gridDeepCopy(this.grid));
                 continue;
@@ -201,15 +198,27 @@ let grid;
 let gridElements;
 let resizeTimeout;
 let sudoku;
-let lastCandidate = null;
-let displayProgressIntervalID;
 let elementCache;
+let solverWorker;
+let solutions;
+let currentSolution;
 function getElement(query) {
     if (elementCache.has(query))
         return elementCache.get(query);
     let elem = document.getElementById(query);
     elementCache.set(query, elem);
     return elem;
+}
+function cleanUp() {
+    sudoku = new Sudoku();
+    solutions = void 0;
+    if (solverWorker)
+        solverWorker.terminate();
+    solverWorker = void 0;
+    getElement('span-solution-text').innerHTML = '';
+    getElement('button-previous-solution').style.display = 'none';
+    getElement('button-next-solution').style.display = 'none';
+    getElement('button-solve').removeAttribute('disabled');
 }
 function documentReady() {
     elementCache = new Map();
@@ -221,7 +230,7 @@ function documentReady() {
         resizeTimeout = setTimeout(updateTable, 100);
     };
     getElement('button-new-sudoku').onclick = (mouseEvent) => {
-        sudoku = new Sudoku();
+        cleanUp();
         for (let i = 0; i < 9; i++) {
             for (let j = 0; j < 9; j++) {
                 grid.childNodes[i].childNodes[j].innerHTML = '';
@@ -252,6 +261,7 @@ function documentReady() {
         let errorElement = getElement('modal-import-error');
         errorElement.parentElement.style.display = 'none';
         getElement('button-import-ok').onclick = (mouseEvent) => {
+            cleanUp();
             try {
                 sudoku.parseSudoku(getElement('modal-import-textarea').value);
                 document.removeEventListener('keydown', modalCloseListener);
@@ -277,28 +287,48 @@ function documentReady() {
     };
     let buttonSolve = getElement('button-solve');
     buttonSolve.onclick = (mouseEvent) => {
-        console.log('click');
-        let worker = new Worker('js/worker.js');
-        worker.onmessage = function (event) {
+        if (solutions)
+            return;
+        buttonSolve.setAttribute('disabled', '');
+        solverWorker = new Worker('js/worker.js');
+        solverWorker.onmessage = function (event) {
             console.log(event.data);
             switch (event.data.type) {
                 case 'candidate':
-                    lastCandidate = event.data;
+                    let grid = event.data.grid;
+                    for (let row = 0; row < 9; row++)
+                        for (let col = 0; col < 9; col++) {
+                            if (sudoku.Fixed[row][col])
+                                continue;
+                            gridElements[row][col].innerHTML = '' + grid[row][col];
+                        }
                     break;
                 case 'solutions':
+                    solutions = event.data.solutions;
+                    currentSolution = 0;
+                    if (solutions.length > 1) {
+                        getElement('button-previous-solution').style.display = 'inherit';
+                        getElement('button-next-solution').style.display = 'inherit';
+                    }
+                    renderSolution();
+                    buttonSolve.removeAttribute('disabled');
                     break;
             }
         };
-        worker.postMessage({
-            sudokuString: sudoku.toString(),
-            viewProgress: getElement('checkbox-view-progress').value
+        solverWorker.postMessage({
+            sudokuString: sudoku.toString()
         });
-        displayProgressIntervalID = window.setInterval(displayProgress, 500);
     };
-}
-function displayProgress() {
-    if (lastCandidate)
-        gridElements[lastCandidate.row][lastCandidate.col].innerHTML = '' + lastCandidate.number;
+    getElement('button-previous-solution').onclick = (mouseEvent) => {
+        currentSolution--;
+        if (currentSolution < 0)
+            currentSolution = solutions.length - 1;
+        renderSolution();
+    };
+    getElement('button-next-solution').onclick = (mouseEvent) => {
+        currentSolution = (currentSolution + 1) % solutions.length;
+        renderSolution();
+    };
 }
 function toID(row, col) {
     return `cell-${row}-${col}`;
@@ -343,7 +373,8 @@ function createGrid() {
                 if (!isNaN(key) && key !== 0) {
                     let [success, conflictRow, conflictCol] = sudoku.setNumber(row, col, key);
                     if (success) {
-                        td.innerHTML = `<b>${key}</b>`;
+                        td.innerHTML = `<span style="font-weight: 900">${key}</span>`;
+                        td.style.backgroundColor = 'light grey';
                     }
                     else {
                         let conflictCell = getElement(toID(conflictRow, conflictCol));
@@ -391,11 +422,22 @@ function renderSudoku() {
         for (let col = 0; col < 9; col++) {
             let gridValue = sudoku.Grid[row][col];
             if (gridValue !== 0) {
-                gridElements[row][col].innerHTML = `<b>${gridValue}</b>`;
+                gridElements[row][col].innerHTML = `<span style="font-weight: 900;">${gridValue}</span>`;
+                gridElements[row][col].style.backgroundColor = 'light grey';
             }
             else {
                 gridElements[row][col].innerHTML = '';
             }
         }
     }
+}
+function renderSolution() {
+    getElement('span-solution-text').innerHTML = `Solution ${currentSolution + 1}/${solutions.length}`;
+    let grid = solutions[currentSolution];
+    for (let row = 0; row < 9; row++)
+        for (let col = 0; col < 9; col++) {
+            if (sudoku.Fixed[row][col])
+                continue;
+            gridElements[row][col].innerHTML = '' + grid[row][col];
+        }
 }

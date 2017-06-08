@@ -17,7 +17,7 @@
                     <span class="close"></span><br>
                     <p>
                         <div class="center">
-                        <textarea id="modal-export-textarea" rows="9" cols="9" onclick="this.select()"></textarea>
+                        <textarea id="modal-export-textarea" rows="9" cols="9" onclick="this.select()" readonly></textarea>
                         </div> 
                     </p>
                 </div>
@@ -38,7 +38,7 @@
             <div class="div-table">
                 <div>
                     <input type="button"
-                           value="New Sudoku" 
+                           value="Clear" 
                            id="button-new-sudoku">
                 </div>
                 <div>
@@ -62,14 +62,18 @@
                 <div>
                     <input type="button" value="Solve" id="button-solve">
                 </div>
+            </div>
+        </p>
+        <p class="center">
+            <div class="div-table">
                 <div>
-                    <input type="button" value="Stop" id="button-stop">
+                    <input type="button" value="<<" id="button-previous-solution">
                 </div>
                 <div>
-                    <label>
-                        <input type="checkbox" id="checkbox-view-progress">
-                        View Progress
-                    </label>
+                    <span id="span-solution-text"></span>
+                </div>
+                <div>
+                    <input type="button" value=">>" id="button-next-solution">
                 </div>
             </div>
         </p>
