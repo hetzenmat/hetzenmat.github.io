@@ -73,6 +73,9 @@ class Sudoku {
     get Grid() {
         return Sudoku.gridDeepCopy(this.grid);
     }
+    get Fixed() {
+        return Sudoku.gridDeepCopy(this.fixed);
+    }
     setNumber(row, col, number) {
         if (row < 0 || row > 8 || col < 0 || col > 8 || number < 1 || number > 9)
             throw new Error(`Row, col or number does not match the given constraints (${row}, ${col}, ${number} given).`);
@@ -141,7 +144,8 @@ class Sudoku {
         }
         return true;
     }
-    solve() {
+    solve(callback) {
+        this.callback = callback;
         this.solutions = [];
         this.backtrack(0, 0);
         return this.solutions;
@@ -169,6 +173,9 @@ class Sudoku {
             if (!legal)
                 continue;
             this.grid[row][col] = i;
+            if (this.callback) {
+                this.callback(i, row, col);
+            }
             if (row == 8 && col == 8) {
                 this.solutions.push(Sudoku.gridDeepCopy(this.grid));
                 continue;
@@ -194,6 +201,8 @@ let grid;
 let gridElements;
 let resizeTimeout;
 let sudoku;
+let lastCandidate = null;
+let displayProgressIntervalID;
 let elementCache;
 function getElement(query) {
     if (elementCache.has(query))
@@ -266,6 +275,30 @@ function documentReady() {
         document.addEventListener('keydown', modalCloseListener);
         getElement('modal-export-textarea').value = sudoku.toString();
     };
+    let buttonSolve = getElement('button-solve');
+    buttonSolve.onclick = (mouseEvent) => {
+        console.log('click');
+        let worker = new Worker('js/worker.js');
+        worker.onmessage = function (event) {
+            console.log(event.data);
+            switch (event.data.type) {
+                case 'candidate':
+                    lastCandidate = event.data;
+                    break;
+                case 'solutions':
+                    break;
+            }
+        };
+        worker.postMessage({
+            sudokuString: sudoku.toString(),
+            viewProgress: getElement('checkbox-view-progress').value
+        });
+        displayProgressIntervalID = window.setInterval(displayProgress, 500);
+    };
+}
+function displayProgress() {
+    if (lastCandidate)
+        gridElements[lastCandidate.row][lastCandidate.col].innerHTML = '' + lastCandidate.number;
 }
 function toID(row, col) {
     return `cell-${row}-${col}`;
@@ -278,7 +311,7 @@ function createGrid() {
         gridElements[row] = [];
         for (let col = 0; col < 9; col++) {
             let td = document.createElement('td');
-            td.setAttribute('id', `cell-${row}-${col}`);
+            td.setAttribute('id', toID(row, col));
             td.tabIndex = row * 9 + col;
             td.onkeydown = (event) => {
                 switch (event.key) {

@@ -1,8 +1,19 @@
+interface CallbackFunction {
+    (number: number, row: number, col: number): void;
+}
+
+interface Candidate {
+    number: number;
+    row: number;
+    col: number;
+}
+
 class Sudoku {
 
     private grid: number[][];
     private fixed: boolean[][];
     private solutions: number[][][];
+    private callback: CallbackFunction;
 
     private static get lineSeperator(): string {
         return '+---+---+---+';
@@ -97,6 +108,10 @@ class Sudoku {
         return Sudoku.gridDeepCopy<number>(this.grid);
     }
 
+    public get Fixed(): boolean[][] {
+        return Sudoku.gridDeepCopy<boolean>(this.fixed);
+    }
+
     public setNumber(row: number, col: number, number: number): [boolean, number, number] {
         if (row < 0 || row > 8 || col < 0 || col > 8 || number < 1 || number > 9)
             throw new Error(`Row, col or number does not match the given constraints (${row}, ${col}, ${number} given).`);
@@ -184,7 +199,9 @@ class Sudoku {
         return true;
     }
 
-    public solve(): number[][][] {
+    public solve(callback?: CallbackFunction): number[][][] {
+        this.callback = callback;
+
         this.solutions = [];
         this.backtrack(0, 0);
         return this.solutions;
@@ -212,13 +229,23 @@ class Sudoku {
             return;
         }
 
+        // traverse all candidates
         for (let i = 1; i <= 9; i++) {
+            
+            // if the candidate is legal, set it
             let legal = this.legalNumber(row, col, i);
 
             if (!legal)
                 continue;
-
+            
             this.grid[row][col] = i;
+
+            // report the current candidate
+            if (this.callback) {
+                this.callback(i, row, col); 
+            }
+
+            // push a valid solution
             if (row == 8 && col == 8) {
                 this.solutions.push(Sudoku.gridDeepCopy<number>(this.grid));
                 continue;

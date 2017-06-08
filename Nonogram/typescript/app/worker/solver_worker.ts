@@ -9,7 +9,7 @@ function log(message: any): void {
 	});
 }
 
-onmessage = function (event) {
+onmessage = function (event: MessageEvent) {
 
 	switch (event.data.type) {
 		case 'start':

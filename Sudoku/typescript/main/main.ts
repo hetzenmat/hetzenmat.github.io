@@ -9,7 +9,8 @@ let grid: HTMLTableElement;
 let gridElements: HTMLTableCellElement[][];
 let resizeTimeout: number;
 let sudoku: Sudoku;
-
+let lastCandidate: Candidate = null;
+let displayProgressIntervalID: number;
 let elementCache: Map<string, HTMLElement>;
 
 function getElement(query: string): HTMLElement {
@@ -94,8 +95,34 @@ function documentReady(): void {
 
     let buttonSolve = getElement('button-solve');
     buttonSolve.onclick = (mouseEvent: MouseEvent) => {
-        
+        console.log('click');
+        let worker: Worker = new Worker('js/worker.js');
+
+        worker.onmessage = function(event: MessageEvent) {
+            console.log(event.data);
+            switch (event.data.type) {
+                case 'candidate':
+                    lastCandidate = event.data;
+                    //gridElements[event.data.row][event.data.col].innerHTML = '' + event.data.number;
+                    break;
+
+                case 'solutions':
+                    break;                
+            }
+        };
+
+        worker.postMessage({
+            sudokuString: sudoku.toString(),
+            viewProgress: (<HTMLInputElement>getElement('checkbox-view-progress')).value
+        });
+
+        displayProgressIntervalID = window.setInterval(displayProgress, 500);
     };
+}
+
+function displayProgress() {
+    if (lastCandidate)
+        gridElements[lastCandidate.row][lastCandidate.col].innerHTML = '' + lastCandidate.number;
 }
 
 function toID(row: number, col: number): string {
@@ -112,7 +139,7 @@ function createGrid(): void {
 
         for (let col = 0; col < 9; col++) {
             let td = document.createElement('td');
-            td.setAttribute('id', `cell-${row}-${col}`);
+            td.setAttribute('id', toID(row, col));
             td.tabIndex = row * 9 + col;
             td.onkeydown = (event: KeyboardEvent) => {
 
