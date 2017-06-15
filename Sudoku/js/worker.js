@@ -98,6 +98,9 @@ var Sudoku = (function () {
         get: function () {
             return this.fixed;
         },
+        set: function (fixed) {
+            this.fixed = fixed;
+        },
         enumerable: true,
         configurable: true
     });
@@ -211,6 +214,7 @@ var Sudoku = (function () {
 var sudoku;
 onmessage = function (event) {
     sudoku = new Sudoku(event.data.sudokuString);
+    postMessage(event.data.sudokuString);
     var solutions;
     solutions = sudoku.solve();
     postMessage({

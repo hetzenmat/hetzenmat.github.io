@@ -112,6 +112,10 @@ class Sudoku {
         return this.fixed;
     }
 
+    public set Fixed(fixed: boolean[][]) {
+        this.fixed = fixed;
+    }
+
     public setNumber(row: number, col: number, number: number): [boolean, number, number] {
         if (row < 0 || row > 8 || col < 0 || col > 8 || number < 1 || number > 9)
             throw new Error(`Row, col or number does not match the given constraints (${row}, ${col}, ${number} given).`);

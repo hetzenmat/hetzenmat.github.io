@@ -13,6 +13,7 @@ let elementCache: Map<string, HTMLElement>;
 let solverWorker: Worker;
 let solutions: number[][][];
 let currentSolution: number;
+let solving: boolean = false;
 
 function getElement(query: string): HTMLElement {
     if (elementCache.has(query))
@@ -23,16 +24,20 @@ function getElement(query: string): HTMLElement {
     return elem;
 }
 
-function cleanUp() {
+function cleanUp(): void {
     sudoku = new Sudoku();
     solutions = void 0;
     if (solverWorker)
         solverWorker.terminate();
     solverWorker = void 0;
+    hideSolutions();
+    getElement('button-solve').removeAttribute('disabled');
+}
+
+function hideSolutions(): void {
     getElement('span-solution-text').innerHTML = '';
     getElement('button-previous-solution').style.display = 'none';
     getElement('button-next-solution').style.display = 'none';
-    getElement('button-solve').removeAttribute('disabled');
 }
 
 function documentReady(): void {
@@ -120,19 +125,9 @@ function documentReady(): void {
         solverWorker.onmessage = function(event: MessageEvent) {
             console.log(event.data);
             switch (event.data.type) {
-                case 'candidate':
-                    let grid: number[][] = event.data.grid;
-                    for (let row = 0; row < 9; row++)
-                        for (let col = 0; col < 9; col++) {
-                            if (sudoku.Fixed[row][col])
-                                continue;
-                            
-                            gridElements[row][col].innerHTML = '' + grid[row][col];
-                        }
-                    break;
-
                 case 'solutions':
                     solutions = event.data.solutions;
+                    sudoku.Fixed = event.data.fixed;
                     currentSolution = 0;
                     if (solutions.length > 1) {
                         getElement('button-previous-solution').style.display = 'inherit';
@@ -185,6 +180,12 @@ function createGrid(): void {
                 switch (event.key) {
                     case 'Backspace':
                     case ' ':
+
+                        if (solutions) {
+                            hideSolutions();
+                            solutions = void 0;
+                        }
+
                         sudoku.resetNumber(row, col);
                         td.innerHTML = '';
                         return;

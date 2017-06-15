@@ -76,6 +76,9 @@ class Sudoku {
     get Fixed() {
         return this.fixed;
     }
+    set Fixed(fixed) {
+        this.fixed = fixed;
+    }
     setNumber(row, col, number) {
         if (row < 0 || row > 8 || col < 0 || col > 8 || number < 1 || number > 9)
             throw new Error(`Row, col or number does not match the given constraints (${row}, ${col}, ${number} given).`);
@@ -294,17 +297,11 @@ function documentReady() {
         solverWorker.onmessage = function (event) {
             console.log(event.data);
             switch (event.data.type) {
-                case 'candidate':
-                    let grid = event.data.grid;
-                    for (let row = 0; row < 9; row++)
-                        for (let col = 0; col < 9; col++) {
-                            if (sudoku.Fixed[row][col])
-                                continue;
-                            gridElements[row][col].innerHTML = '' + grid[row][col];
-                        }
-                    break;
                 case 'solutions':
                     solutions = event.data.solutions;
+                    sudoku.Fixed = event.data.fixed;
+                    console.log(sudoku.Fixed);
+                    console.log(event.data.fixed);
                     currentSolution = 0;
                     if (solutions.length > 1) {
                         getElement('button-previous-solution').style.display = 'inherit';
@@ -374,7 +371,6 @@ function createGrid() {
                     let [success, conflictRow, conflictCol] = sudoku.setNumber(row, col, key);
                     if (success) {
                         td.innerHTML = `<span style="font-weight: 900">${key}</span>`;
-                        td.style.backgroundColor = 'light grey';
                     }
                     else {
                         let conflictCell = getElement(toID(conflictRow, conflictCol));
@@ -423,7 +419,6 @@ function renderSudoku() {
             let gridValue = sudoku.Grid[row][col];
             if (gridValue !== 0) {
                 gridElements[row][col].innerHTML = `<span style="font-weight: 900;">${gridValue}</span>`;
-                gridElements[row][col].style.backgroundColor = 'light grey';
             }
             else {
                 gridElements[row][col].innerHTML = '';
