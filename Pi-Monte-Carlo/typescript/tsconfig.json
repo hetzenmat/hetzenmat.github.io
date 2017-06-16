@@ -1,0 +1,13 @@
+{
+    "compilerOptions": {
+        "noImplicitAny": true,
+        "removeComments": true,
+        "preserveConstEnums": true,
+        "outFile": "../js/main.js",
+        "sourceMap": false,
+        "target": "es6"
+    },
+    "files": [
+        "main.ts"
+    ]
+}
