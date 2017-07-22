@@ -1,3 +1,5 @@
+var EMPTY = 0;
+var BLOCK = 1;
 var Puzzle = (function () {
     function Puzzle(constraints) {
         this.constraints = constraints;

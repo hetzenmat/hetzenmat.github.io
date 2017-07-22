@@ -3,16 +3,13 @@
         "noImplicitAny": true,
         "removeComments": true,
         "preserveConstEnums": true,
-        "outFile": "test_worker.js",
-        "sourceMap": true,
+        "outFile": "../../../test/test_worker.js",
         "lib": [
-            "ES6",
-            "WebWorker"
+            "es6",
+            "webworker"
         ]
     },
     "files": [        
-        "test_worker.ts",
-        "../solutions.ts",
-        "../examples.ts"
+        "test_worker.ts"
     ]
 }

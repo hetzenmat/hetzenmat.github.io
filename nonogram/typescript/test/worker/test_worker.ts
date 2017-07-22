@@ -1,6 +1,10 @@
-/// <reference path="../../examples.ts"/>
-/// <reference path="../solutions.ts"/>
-/// <reference path="../../Puzzle.ts"/>
+importScripts('../js/examples.js',
+              './solutions.js',
+              '../js/Puzzle.js');
+
+declare var solutions: any;
+declare var examples: any;
+declare var Puzzle: any;
 
 onmessage = function (event : MessageEvent) : void {
     if (event.data === 'start') {
@@ -33,7 +37,7 @@ function testCase(count : number, name : string) : void {
     let start = new Date().getTime();
 
     let puzzle = new Puzzle(examples[name]);
-    puzzle.solve(); // TODO
+    puzzle.solve(void 0);
     let duration = (new Date().getTime() - start) / 1000;
 
     append_text(`<p>Took ${duration} seconds</p>`);
@@ -48,7 +52,7 @@ function testCase(count : number, name : string) : void {
 
             let solution_passed = false;
             for (let j = 0; j < solutions[name].length; j++) {
-                if (compare_states(puzzle.solutions[i], solutions[name].solutions[j]))
+                if (compare_states(puzzle.solutions[i], solutions[name][j]))
                     solution_passed = true;
             }
 

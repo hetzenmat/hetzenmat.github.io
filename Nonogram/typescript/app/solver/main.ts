@@ -1,5 +1,7 @@
-/// <reference path="../../examples.ts"/>
 /// <reference path="../../types.ts"/>
+
+// examples from example.ts
+declare var examples: any;
 
 class UserInterface {
     hover_background_color: string;

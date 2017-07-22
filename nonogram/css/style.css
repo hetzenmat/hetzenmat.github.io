@@ -1,3 +1,7 @@
+.content {
+    max-width: 35rem;
+}
+
 input, select {
     font-size: 20px;
     font-family: 'Pagella', serif;
