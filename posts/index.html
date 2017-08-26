@@ -1,15 +1,35 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <link rel="stylesheet" type="text/css" href="css/style.css">
+    <link rel="stylesheet" type="text/css" href="../fonts/pagella/style.css">
     <meta charset="UTF-8">
+    <style>
+    html {
+        font-family: 'Pagella', serif;
+        text-align: justify;
+        line-height: 1.5;
+    }
+
+    .wrapper {
+        max-width: 60%;
+        margin: 0 auto;
+    }
+
+    h1 {
+        font-size: 2em;
+    }
+
+    footer {
+        text-align: right;
+    }
+    </style>
 </head>
 <body>
 <div class="wrapper">
 <h1>Test Post</h1>
 
 <p>
-    Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.
+    Lorem ipsum dolor \( \sum \int^a_b \) sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.
 </p>
 
 \[
@@ -22,51 +42,24 @@
 
 <hr>
 <footer>
-
-<div>
-  <span>Matthias Hetzenberger • </span>
-  <a href="https://github.com/hetzenmat" target="_blank" title="Github" style="vertical-align:middle;"><img src="../icons/1.png" style="height: 1em;"></a>
-</div>
+    <div>
+        <span>Matthias Hetzenberger • </span>
+        <a href="https://github.com/hetzenmat" target="_blank" title="Github" style="vertical-align:middle;"><img src="../icons/1.png" style="height: 1em;"></a>
+    </div>
 </footer>
 
-<div id="disqus_thread"></div>
-<script>
-     var disqus_config = function () {
-         this.page.url = 'hetzenmat.github.io/posts/';
-         this.page.identifier = 'test post';
-     };
-
-    (function() { // DON'T EDIT BELOW THIS LINE
-        var d = document, s = d.createElement('script');
-        s.src = '//hetzenmat-github-io.disqus.com/embed.js';
-        s.setAttribute('data-timestamp', +new Date());
-        (d.head || d.body).appendChild(s);
-    })();
-</script>
-<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
-
-</div>
-
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS_SVG"></script>
 <script type="text/x-mathjax-config">
   MathJax.Hub.Config({
-    extensions: ["tex2jax.js"],
-    jax: ["input/TeX", "output/SVG"],
     tex2jax: {
       inlineMath: [ ["\\(","\\)"] ],
       displayMath: [ ["\\[","\\]"] ],
-      processEscapes: true
+      processEscapes: true,
+      showProcessingMessages: true
     },
-    SVG: { font: "Gyre-Pagella" }
+    SVG: { font: "Gyre-Pagella" },
+    messageStyle: "none"
   });
 </script>
-<!--
-<script src="../lib/MathJax-2.6-latest/MathJax.js"></script>
--->
-
-<script type="text/javascript" async
-  src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js">
-</script>
-
-
 </body>
 </html>
