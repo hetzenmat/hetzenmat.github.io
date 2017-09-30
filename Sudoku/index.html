@@ -9,31 +9,32 @@
     <link rel="stylesheet" type="text/css" href="css/style.css"> 
 </head>
 <body>
-    <div class="content">
+    <div id="app" class="content">
         <h1>Sudoku Solver</h1>
-
-            <div id="modal-export" class="modal">
-                <div class="modal-content">
-                    <span class="close"></span><br>
-                    <p>
-                        <div class="center">
+        <div id="modal-export" class="modal">
+            <div class="modal-content">
+                <span class="close"></span><br>
+                <p>
+                    <div class="center">
+                        <p>You can copy the bottom text to save and restore the Sudoku in the future:</p>
                         <textarea id="modal-export-textarea" rows="9" cols="9" onclick="this.select()" readonly></textarea>
-                        </div> 
+                    </div> 
+                </p>
+            </div>
+        </div>
+        <div id="modal-import" class="modal">
+            <div class="modal-content">
+                <span class="close"></span><br>
+                <div class="center">
+                    <p>Paste the Sudoku in the text field below: </p>
+                    <p><textarea id="modal-import-textarea" rows="9" cols="9"></textarea></p>
+                    <p><input type="button" value="Import" id="button-import-ok"></p>
+                    <p style="color: red;" class="center">
+                        <strong>Error: <span id="modal-import-error"></span></strong>
                     </p>
                 </div>
             </div>
-
-            <div id="modal-import" class="modal">
-                <div class="modal-content">
-                    <span class="close"></span><br>
-                    <p class="center">
-                        <textarea id="modal-import-textarea" rows="9" cols="9"></textarea><br>
-                        <input type="button" value="OK" id="button-import-ok">
-                        
-                    </p>
-                    <p style="color: red;" class="center"><strong>Error: <span id="modal-import-error"></span></strong></p>
-                </div>
-            </div>
+        </div>
 
             <div class="div-table">
                 <div>
@@ -52,16 +53,15 @@
                            id="button-export">
                 </div>
             </div>
-
         <p>
             <table id="grid" align="center">
             </table>
         </p>
-        <p class="center">
-            <div class="div-table">
-                <div>
-                    <input type="button" value="Solve" id="button-solve">
-                </div>
+        <p>
+            <div class="center">
+                <input type="button" value="Solve" id="button-solve">
+                <div style="width: 20px; display: inline-block;"></div>
+                <input type="button" value="Cancel" id="button-cancel">
             </div>
         </p>
         <p class="center">

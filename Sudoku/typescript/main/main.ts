@@ -32,6 +32,17 @@ function cleanUp(): void {
     solverWorker = void 0;
     hideSolutions();
     getElement('button-solve').removeAttribute('disabled');
+
+    for (let row = 0; row < 9; row++)
+        for (let col = 0; col < 9; col++) {
+            if (sudoku.Fixed[row][col])
+                continue;
+
+            let elem = gridElements[row][col];
+            elem.innerHTML = '';
+            if (elem.classList.contains('td-fixed'))
+                elem.classList.remove('td-fixed');
+            }
 }
 
 function hideSolutions(): void {
@@ -215,17 +226,17 @@ function createGrid(): void {
 
                 let key = parseInt(event.key);
                 if (!isNaN(key) && key !== 0) {
-
                     let [success, conflictRow, conflictCol] = sudoku.setNumber(row, col, key);
                     if (success) {
-                        td.innerHTML = `<span style="font-weight: 900">${key}</span>`;
+                        td.innerHTML = '' + key;
+                        td.classList.add('td-fixed');
                     } else {
                         // mark conflicting cell
                         let conflictCell = getElement(toID(conflictRow, conflictCol));
-                        conflictCell.style.backgroundColor = 'red';
+                        conflictCell.style.boxShadow = '0 0 20px 10px red';
 
                         // reset the style after 3 seconds
-                        setTimeout(() => conflictCell.style.backgroundColor = '', 3000);
+                        setTimeout(() => conflictCell.style.boxShadow = '', 3000);
                     }
                 }
             };
@@ -273,7 +284,8 @@ function renderSudoku(): void {
         for (let col = 0; col < 9; col++) {
             let gridValue = sudoku.Grid[row][col];
             if (gridValue !== 0) {
-                gridElements[row][col].innerHTML = `<span style="font-weight: 900;">${gridValue}</span>`;
+                gridElements[row][col].innerHTML = '' + gridValue;
+                gridElements[row][col].classList.add('td-fixed');
             } else {
                 gridElements[row][col].innerHTML = '';
             }

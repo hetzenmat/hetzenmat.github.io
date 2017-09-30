@@ -8,23 +8,37 @@
     <link rel="stylesheet" type="text/css" href="css/style.css"> 
 </head>
 <body>
-<div class="content">
+<div class="content" id="app">
 	<h1>Abelian Sandpile</h1>
+	{{ message }}
 	<p>
 		<div class="div-table">
 			<div style="text-align: left;">
 				Iteration: <span id="iteration">0</span>
 			</div>
 			<div>
-				<input id="button-start" type="button" value="Start" style="margin-right: 5px; float: right;">
+				<input id="button-start"
+					   type="button"
+					   value="Start"
+					   v-on:click="startClick"
+					   style="margin-right: 5px; float: right;">
 			</div>
 			<div>
-				<input id="button-stop" type="button" value="Stop" style="margin-left:5px; float: left;">
+				<input id="button-stop"
+					   type="button"
+					   value="Stop"
+					   v-on:click="stopClick"
+					   style="margin-left: 5px; float: left;">
 			</div>
 		</div>
 	</p>
-	<div class="center"><svg></svg></div>
-	<script src="js/main.js"></script>
+	<div class="center">
+		<svg></svg>
+	</div>	
 </div>
+
+<script src="https://unpkg.com/vue"></script>
+<script src="js/main.js"></script>
+
 </body>
 </html>

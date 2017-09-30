@@ -1,3 +1,18 @@
+let app = new Vue({
+    el: '#app',
+    data: {
+        message: 'test'
+    },
+    methods: {
+        startClick: () => {
+            console.log('start click');
+        },
+        stopClick: () => {
+            console.log('stop click');
+        }
+    }
+});
+
 let spanIteration = document.getElementById('iteration');
 let iterations = 0;
 let svg = document.getElementsByTagName('svg')[0];

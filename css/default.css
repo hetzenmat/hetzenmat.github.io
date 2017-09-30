@@ -2,7 +2,7 @@ html {
     font-family: 'Pagella', serif;
     text-align: justify;
     line-height: 2;
-    font-size: 20px;
+    font-size: 15pt;
 }
 
 input[type=button] {
@@ -10,7 +10,7 @@ input[type=button] {
 }
 
 .content {
-    max-width: 40rem;
+    max-width: 60%;
     margin: 0 auto;
 }
 
