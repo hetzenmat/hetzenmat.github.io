@@ -11,6 +11,7 @@ interface Candidate {
 class Sudoku {
 
     private grid: number[][];
+    private candidates: string[][];
     private fixed: boolean[][];
     private solutions: number[][][];
     private callback: CallbackFunction;
@@ -33,6 +34,13 @@ class Sudoku {
         return grid;
     }
 
+    /**
+     * Creates a deep copy of the given 2-dimensional array.
+     * 
+     * @param grid Array that is copied.
+     * @param rows The number of rows.
+     * @param cols The number of columns.
+     */
     private static gridDeepCopy<T>(grid: T[][], rows=9, cols=9): T[][] {
         let copy: T[][] = [];
 
@@ -47,15 +55,23 @@ class Sudoku {
         return copy;
     }
 
-    public static sudokuToString(grid: number[][], placeholder='.'): string {
+    /**
+     * Transforms the given sudoku to a printable string.
+     * 
+     * @param grid The state of the sudoku.
+     * @param separations Whether to add visual separations to the string.
+     * @param placeholder Character to be inserted for empty cells.
+     */
+    public static sudokuToString(grid: number[][], separations=true, placeholder='.'): string {
         let result = '';
 
         for (let row = 0; row < 9; row++) {
-            if (row % 3 === 0)
+            if (separations && row % 3 === 0) {
                 result += Sudoku.lineSeperator + '\n';
+            }
 
             for (let col = 0; col < 9; col++) {
-                if (col % 3 === 0)
+                if (separations && col % 3 === 0)
                     result += '|';
 
                 if (grid[row][col] !== 0)
@@ -63,16 +79,20 @@ class Sudoku {
                 else
                     result += placeholder;
             }
+            if (separations) {
+                result += '|';
+            }
             result += '\n';
         }
 
-        result += Sudoku.lineSeperator + '\n';
+        if (separations) {
+            result += Sudoku.lineSeperator + '\n';
+        }
         return result;
     }
 
     public parseSudoku(sudoku_string: string): void {
-        this.grid = Sudoku.newGrid(0);
-        this.fixed = Sudoku.newGrid(false);
+        this.clear();
 
         let lines = sudoku_string.trim().split('\n');
         lines = lines.map(s => s.trim());
@@ -203,15 +223,101 @@ class Sudoku {
         return true;
     }
 
+    public clear(): void {
+        this.grid = Sudoku.newGrid(0);
+        this.candidates = Sudoku.newGrid('123456789');
+        this.fixed = Sudoku.newGrid(false);
+    }
+
     public solve(): number[][][] {
         this.solutions = [];
+
+        for (let row = 0; row < 9; row++) {
+            for (let col = 0; col < 9; col++) {
+                if (this.Fixed[row][col] && !this.assign(row, col, '' + this.grid[row][col])) {
+                    return [];
+                }
+            }
+        }
+
+        let solved = true;
+        for (let row = 0; solved && row < 9; row++) {
+            for (let col = 0; solved &&col < 9; col++) {
+                if (!this.fixed[row][col]) {
+                    solved = false;
+                }
+            }
+        }
+
+        if (solved) {
+            let solution = Sudoku.newGrid(0);
+            for (let row = 0; row < 9; row++) {
+                for (let col = 0; col < 9; col++) {
+                    solution[row][col] = parseInt(this.candidates[row][col]);
+                }
+            }
+            
+            return [solution];
+        }
+
         this.backtrack(0, 0);
         return this.solutions;
     }
 
-    public clear(): void {
-        this.grid = Sudoku.newGrid(0);
-        this.fixed = Sudoku.newGrid(false);
+    private assign(row: number, col: number, value: string): boolean {
+
+        if (this.candidates[row][col].indexOf(value) === -1) {
+            return false;
+        }
+
+        this.candidates[row][col] = value;
+
+        // propagate rows and columns
+        for (let i = 0; i < 9; i++) {
+            if (i !== row && this.candidates[i][col].indexOf(value) !== -1) {
+                this.candidates[i][col] = this.candidates[i][col].replace(value, '');
+                if (this.candidates[i][col].length === 1) {
+                    this.fixed[i][col] = true;
+                    this.grid[i][col] = parseInt(this.candidates[i][col]);
+                    if (!this.assign(i, col, this.candidates[i][col])) {
+                        return false;
+                    }
+                }
+            }
+
+            if (i !== col && this.candidates[row][i].indexOf(value) !== -1) {
+                this.candidates[row][i] = this.candidates[row][i].replace(value, '');
+                if (this.candidates[row][i].length === 1) {
+                    this.fixed[row][i] = true;
+                    this.grid[row][i] = parseInt(this.candidates[row][i]);
+                    if (!this.assign(row, i, this.candidates[row][i])) {
+                        return false;
+                    }
+                }
+            }
+        }
+
+        // propagate block
+        let row_start = row - row % 3;
+        let col_start = col - col % 3;
+
+        for (let r = row_start; r < row_start + 3; r++) {
+            for (let c = col_start; c < col_start + 3; c++) {
+                if ((r === row && c === col) || this.candidates[r][c].indexOf(value) === -1)
+                    continue;
+
+                this.candidates[r][c] = this.candidates[r][c].replace(value, '');
+                if (this.candidates[r][c].length === 1) {
+                    this.fixed[r][c] = true;
+                    this.grid[r][c] = parseInt(this.candidates[r][c]);
+                    if (!this.assign(r, c, this.candidates[r][c])) {
+                        return false;
+                    }
+                }
+            }
+        }
+
+        return true;
     }
 
     private backtrack(row: number, col: number): void {

@@ -24,22 +24,28 @@ class Sudoku {
         }
         return copy;
     }
-    static sudokuToString(grid, placeholder = '.') {
+    static sudokuToString(grid, separations = true, placeholder = '.') {
         let result = '';
         for (let row = 0; row < 9; row++) {
-            if (row % 3 === 0)
+            if (separations && row % 3 === 0) {
                 result += Sudoku.lineSeperator + '\n';
+            }
             for (let col = 0; col < 9; col++) {
-                if (col % 3 === 0)
+                if (separations && col % 3 === 0)
                     result += '|';
                 if (grid[row][col] !== 0)
                     result += grid[row][col];
                 else
                     result += placeholder;
             }
+            if (separations) {
+                result += '|';
+            }
             result += '\n';
         }
-        result += Sudoku.lineSeperator + '\n';
+        if (separations) {
+            result += Sudoku.lineSeperator + '\n';
+        }
         return result;
     }
     parseSudoku(sudoku_string) {
@@ -324,13 +330,15 @@ function documentReady() {
         buttonCancel.removeAttribute('disabled');
         solverWorker = new Worker('js/worker.js');
         solverWorker.onmessage = function (event) {
-            console.log(event.data);
             switch (event.data.type) {
                 case 'solutions':
                     enableSolveButton();
                     solutions = event.data.solutions;
                     sudoku.Fixed = event.data.fixed;
                     currentSolution = 0;
+                    for (let solution of solutions) {
+                        console.log(Sudoku.sudokuToString(solution, false));
+                    }
                     id('button-clear-solutions').style.display = 'inherit';
                     if (solutions.length > 1) {
                         id('button-previous-solution').style.display = 'inherit';

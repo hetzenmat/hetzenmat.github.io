@@ -1,0 +1,13 @@
+{
+    "compilerOptions": {
+        "noImplicitAny": true,
+        "removeComments": true,
+        "preserveConstEnums": true,
+        "outFile": "../js/tests.js",
+        "sourceMap": false,
+        "target": "es5"
+    },
+    "files": [
+        "tests.ts"
+    ]
+}

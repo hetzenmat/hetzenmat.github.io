@@ -169,7 +169,6 @@ function documentReady(): void {
 
         solverWorker = new Worker('js/worker.js');
         solverWorker.onmessage = function(event: MessageEvent) {
-            console.log(event.data);
             switch (event.data.type) {
                 case 'solutions':
                     enableSolveButton();
@@ -177,7 +176,11 @@ function documentReady(): void {
                     solutions = event.data.solutions;
                     sudoku.Fixed = event.data.fixed;
                     currentSolution = 0;
-                    
+
+                    for (let solution of solutions) {
+                        console.log(Sudoku.sudokuToString(solution, false));
+                    }
+
                     id('button-clear-solutions').style.display = 'inherit';
                     if (solutions.length > 1) {
                         id('button-previous-solution').style.display = 'inherit';
