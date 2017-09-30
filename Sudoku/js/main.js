@@ -206,46 +206,59 @@ let solverWorker;
 let solutions;
 let currentSolution;
 let solving = false;
-function getElement(query) {
-    if (elementCache.has(query))
+function id(query) {
+    if (elementCache.has(query)) {
         return elementCache.get(query);
+    }
     let elem = document.getElementById(query);
-    elementCache.set(query, elem);
+    if (elem) {
+        elementCache.set(query, elem);
+    }
     return elem;
+}
+function stopWorker() {
+    if (solverWorker)
+        solverWorker.terminate();
+    solverWorker = void 0;
 }
 function cleanUp() {
     sudoku = new Sudoku();
     solutions = void 0;
-    if (solverWorker)
-        solverWorker.terminate();
-    solverWorker = void 0;
-    hideSolutions();
-    getElement('button-solve').removeAttribute('disabled');
+    stopWorker();
+    clearSolutions();
+    enableSolveButton();
     for (let row = 0; row < 9; row++)
         for (let col = 0; col < 9; col++) {
             if (sudoku.Fixed[row][col])
                 continue;
             let elem = gridElements[row][col];
             elem.innerHTML = '';
-            if (elem.classList.contains('td-fixed'))
-                elem.classList.remove('td-fixed');
+            elem.classList.remove('td-fixed');
         }
 }
-function hideSolutions() {
-    getElement('span-solution-text').innerHTML = '';
-    getElement('button-previous-solution').style.display = 'none';
-    getElement('button-next-solution').style.display = 'none';
+function clearSolutions() {
+    solutions = void 0;
+    currentSolution = void 0;
+    id('span-solution-text').innerHTML = '';
+    id('button-previous-solution').style.display = 'none';
+    id('button-next-solution').style.display = 'none';
+    id('button-clear-solutions').style.display = 'none';
+}
+function enableSolveButton() {
+    id('button-solve').removeAttribute('disabled');
+    id('button-cancel').setAttribute('disabled', '');
+    id('button-solve').value = 'Solve';
 }
 function documentReady() {
     elementCache = new Map();
-    grid = getElement('grid');
+    grid = id('grid');
     createGrid();
     sudoku = new Sudoku();
     window.onresize = () => {
         clearTimeout(resizeTimeout);
         resizeTimeout = setTimeout(updateTable, 100);
     };
-    getElement('button-new-sudoku').onclick = (mouseEvent) => {
+    id('button-new-sudoku').onclick = (mouseEvent) => {
         cleanUp();
         for (let i = 0; i < 9; i++) {
             for (let j = 0; j < 9; j++) {
@@ -271,17 +284,17 @@ function documentReady() {
             document.removeEventListener('keydown', modalCloseListener);
         };
     }
-    getElement('button-import').onclick = (mouseEvent) => {
-        getElement('modal-import').style.display = 'block';
+    id('button-import').onclick = (mouseEvent) => {
+        id('modal-import').style.display = 'block';
         document.addEventListener('keydown', modalCloseListener);
-        let errorElement = getElement('modal-import-error');
+        let errorElement = id('modal-import-error');
         errorElement.parentElement.style.display = 'none';
-        getElement('button-import-ok').onclick = (mouseEvent) => {
+        id('button-import-ok').onclick = (mouseEvent) => {
             cleanUp();
             try {
-                sudoku.parseSudoku(getElement('modal-import-textarea').value);
+                sudoku.parseSudoku(id('modal-import-textarea').value);
                 document.removeEventListener('keydown', modalCloseListener);
-                getElement('modal-import').style.display = 'none';
+                id('modal-import').style.display = 'none';
             }
             catch (error) {
                 if (error instanceof Error) {
@@ -296,30 +309,34 @@ function documentReady() {
             }
         };
     };
-    getElement('button-export').onclick = (mouseEvent) => {
-        getElement('modal-export').style.display = 'block';
+    id('button-export').onclick = (mouseEvent) => {
+        id('modal-export').style.display = 'block';
         document.addEventListener('keydown', modalCloseListener);
-        getElement('modal-export-textarea').value = sudoku.toString();
+        id('modal-export-textarea').value = sudoku.toString();
     };
-    let buttonSolve = getElement('button-solve');
+    let buttonSolve = id('button-solve');
+    let buttonCancel = id('button-cancel');
     buttonSolve.onclick = (mouseEvent) => {
         if (solutions)
             return;
         buttonSolve.setAttribute('disabled', '');
+        buttonSolve.value = 'Solving...';
+        buttonCancel.removeAttribute('disabled');
         solverWorker = new Worker('js/worker.js');
         solverWorker.onmessage = function (event) {
             console.log(event.data);
             switch (event.data.type) {
                 case 'solutions':
+                    enableSolveButton();
                     solutions = event.data.solutions;
                     sudoku.Fixed = event.data.fixed;
                     currentSolution = 0;
+                    id('button-clear-solutions').style.display = 'inherit';
                     if (solutions.length > 1) {
-                        getElement('button-previous-solution').style.display = 'inherit';
-                        getElement('button-next-solution').style.display = 'inherit';
+                        id('button-previous-solution').style.display = 'inherit';
+                        id('button-next-solution').style.display = 'inherit';
                     }
                     renderSolution();
-                    buttonSolve.removeAttribute('disabled');
                     break;
             }
         };
@@ -327,15 +344,23 @@ function documentReady() {
             sudokuString: sudoku.toString()
         });
     };
-    getElement('button-previous-solution').onclick = (mouseEvent) => {
+    buttonCancel.onclick = () => {
+        stopWorker();
+        enableSolveButton();
+    };
+    id('button-previous-solution').onclick = () => {
         currentSolution--;
         if (currentSolution < 0)
             currentSolution = solutions.length - 1;
         renderSolution();
     };
-    getElement('button-next-solution').onclick = (mouseEvent) => {
+    id('button-next-solution').onclick = () => {
         currentSolution = (currentSolution + 1) % solutions.length;
         renderSolution();
+    };
+    id('button-clear-solutions').onclick = () => {
+        clearSolutions();
+        renderSudoku();
     };
 }
 function toID(row, col) {
@@ -356,11 +381,12 @@ function createGrid() {
                     case 'Backspace':
                     case ' ':
                         if (solutions) {
-                            hideSolutions();
-                            solutions = void 0;
+                            clearSolutions();
+                            renderSudoku();
                         }
                         sudoku.resetNumber(row, col);
                         td.innerHTML = '';
+                        td.classList.remove('td-fixed');
                         return;
                     case 'ArrowUp':
                         let newRow = row - 1;
@@ -389,14 +415,14 @@ function createGrid() {
                         td.classList.add('td-fixed');
                     }
                     else {
-                        let conflictCell = getElement(toID(conflictRow, conflictCol));
+                        let conflictCell = id(toID(conflictRow, conflictCol));
                         conflictCell.style.boxShadow = '0 0 20px 10px red';
                         setTimeout(() => conflictCell.style.boxShadow = '', 3000);
                     }
                 }
             };
-            td.onfocus = () => td.style.backgroundColor = '#b3b3b3';
-            td.onblur = () => td.style.backgroundColor = '';
+            td.onfocus = () => td.style.boxShadow = '0 0 20px 10px #b3b3b3';
+            td.onblur = () => td.style.boxShadow = '';
             if (col % 3 === 0) {
                 td.classList.add('border-left');
             }
@@ -444,7 +470,11 @@ function renderSudoku() {
     }
 }
 function renderSolution() {
-    getElement('span-solution-text').innerHTML = `Solution ${currentSolution + 1}/${solutions.length}`;
+    if (solutions.length === 0) {
+        id('span-solution-text').innerHTML = 'There are no solutions.';
+        return;
+    }
+    id('span-solution-text').innerHTML = `Solution ${currentSolution + 1}/${solutions.length}`;
     let grid = solutions[currentSolution];
     for (let row = 0; row < 9; row++)
         for (let col = 0; col < 9; col++) {

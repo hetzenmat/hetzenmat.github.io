@@ -50,6 +50,6 @@ input[type="button"][disabled]:hover {
 }
 
 /* initially hidden controls */
-input[type=button][value=">>"], input[type=button][value="<<"] {
+input[type=button][value=">>"], input[type=button][value="<<"], #button-clear-solutions {
     display: none;
 }
