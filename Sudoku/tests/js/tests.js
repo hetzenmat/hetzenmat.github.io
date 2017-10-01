@@ -318,5 +318,28 @@ function testSudoku(value, testIndex) {
     }
     return matched === testSolutions[testIndex].length;
 }
+function runTest(index) {
+    var li = document.getElementById('li-test-' + index);
+    li.classList.add('test-initial');
+    li.classList.remove('test-success', 'test-failure');
+    li.classList.remove('test-initial');
+    li.classList.add('test-success');
+}
 var passedTests = testStrings.map(testSudoku).map(Number).reduce(function (prev, curr) { return prev + curr; });
+var LONG_DOUBLE_ARROW_HTML_ENTITY = '&#10238;';
+window.addEventListener('load', function () {
+    var testList = document.getElementById('ol-test-cases');
+    for (var i = 0; i < testStrings.length; i++) {
+        var innerHTML = '<li class="test-initial" id="li-test-' + i + '" ><div>';
+        innerHTML += '<div class="padding-2em"><input type="button" value="Run" onclick="runTest(' + i + ');"></div>';
+        innerHTML += '<div class="padding-2em"><code>' + testStrings[i].replace(/\n/g, '<br>') + '</code></div>';
+        innerHTML += '<div class="padding-2em" style="display: flex; align-items: center;">' + LONG_DOUBLE_ARROW_HTML_ENTITY + '</div>';
+        for (var _i = 0, _a = testSolutions[i]; _i < _a.length; _i++) {
+            var solution = _a[_i];
+            innerHTML += '<div class="padding-2em"><code>' + solution.replace(/\n/g, '<br>') + '</code></div>';
+        }
+        innerHTML += '</div></li><div style="clear: both;"></div>';
+        testList.innerHTML += innerHTML;
+    }
+});
 console.log(passedTests, passedTests === testStrings.length);

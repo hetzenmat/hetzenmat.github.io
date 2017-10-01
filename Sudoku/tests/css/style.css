@@ -1,0 +1,37 @@
+#ol-test-cases {
+    line-height: 1;
+}
+
+#ol-test-cases li {
+    font-weight: 900;
+    width: 100%;
+}
+
+#ol-test-cases li > div {
+    display: flex;
+    padding-bottom: 1em;
+    color: initial;
+    font-weight: initial;
+}
+
+#ol-test-cases li,li div {
+    float: left;
+}
+
+#ol-test-cases .padding-2em {
+    padding-right: 2em;
+}
+
+#ol-test-cases .test-initial {
+    background-color: rgb(232, 230, 230);
+}
+
+#ol-test-cases .test-success {
+    color: rgb(74, 199, 74);
+    background-color: rgb(191, 232, 191);
+}
+
+#ol-test-cases .test-failure {
+    color: rgb(232, 163, 163);
+    background-color: rgb(232, 163, 163);
+}

@@ -1,5 +1,7 @@
 /// <reference path="../../typescript/Sudoku.ts"/>
 
+
+
 let testStrings = [
     '906070403\n000400200\n070023010\n500000100\n040208060\n003000005\n030700050\n007005000\n405010708',
     // norvig easy
@@ -41,6 +43,36 @@ function testSudoku(value: string, testIndex: number): boolean {
     return matched === testSolutions[testIndex].length;
 } 
 
+function runTest(index: number): void {
+    let li = document.getElementById('li-test-' + index);
+    li.classList.add('test-initial');
+    li.classList.remove('test-success', 'test-failure');
+    
+    li.classList.remove('test-initial');
+    li.classList.add('test-success');
+}
+
 let passedTests = testStrings.map(testSudoku).map(Number).reduce((prev, curr) => prev + curr);
+
+const LONG_DOUBLE_ARROW_HTML_ENTITY = '&#10238;';
+
+window.addEventListener('load', () => {
+    let testList = document.getElementById('ol-test-cases');
+    
+    for (let i = 0; i < testStrings.length; i++) {
+        let innerHTML = '<li class="test-initial" id="li-test-' + i + '" ><div>';
+        innerHTML += '<div class="padding-2em"><input type="button" value="Run" onclick="runTest(' + i + ');"></div>';
+        innerHTML += '<div class="padding-2em"><code>' + testStrings[i].replace(/\n/g, '<br>') + '</code></div>';
+        innerHTML += '<div class="padding-2em" style="display: flex; align-items: center;">' + LONG_DOUBLE_ARROW_HTML_ENTITY + '</div>';
+
+        for (let solution of testSolutions[i]) {
+            innerHTML += '<div class="padding-2em"><code>' + solution.replace(/\n/g, '<br>') + '</code></div>';
+        }
+
+        
+        innerHTML += '</div></li><div style="clear: both;"></div>';
+        testList.innerHTML += innerHTML;
+    }
+});
 
 console.log(passedTests, passedTests === testStrings.length)
