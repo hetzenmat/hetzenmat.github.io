@@ -52,7 +52,7 @@ function testCase(count : number, name : string) : void {
 
             let solution_passed = false;
             for (let j = 0; j < solutions[name].length; j++) {
-                if (compare_states(puzzle.solutions[i], solutions[name][j]))
+                if (compare_states(puzzle.solutions[i], solutions[name].solutions[j]))
                     solution_passed = true;
             }
 

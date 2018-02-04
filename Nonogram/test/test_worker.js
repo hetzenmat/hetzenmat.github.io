@@ -37,7 +37,7 @@ function testCase(count, name) {
         for (var i = 0; i < puzzle.solutions.length; i++) {
             var solution_passed = false;
             for (var j = 0; j < solutions[name].length; j++) {
-                if (compare_states(puzzle.solutions[i], solutions[name][j]))
+                if (compare_states(puzzle.solutions[i], solutions[name].solutions[j]))
                     solution_passed = true;
             }
             if (solution_passed) {
