@@ -1,0 +1,12 @@
+{
+    "compilerOptions": {
+        "noImplicitAny": true,
+        "removeComments": true,
+        "preserveConstEnums": true,
+        "outFile": "../../test/main.js",
+        "sourceMap": false
+    },
+    "files": [
+        "tests.ts"
+    ]
+}

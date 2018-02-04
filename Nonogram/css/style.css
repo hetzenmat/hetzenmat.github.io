@@ -1,0 +1,39 @@
+.content {
+    max-width: 35rem;
+}
+
+input, select {
+    font-size: 20px;
+    font-family: 'Pagella', serif;
+}
+
+input[type='number'] {
+    width: 100px;
+    text-align: center;
+}
+
+#grid {
+    width: 100%;
+    table-layout: fixed;
+    border-collapse: collapse;
+}
+
+#grid td {
+    border: 1px solid black;
+    height: 20px;
+    box-sizing: border-box;
+    text-align: center;
+    overflow: hidden;
+}
+
+#grid td[class^='constraint-']:hover {
+    cursor: pointer;
+}
+
+#grid td[solving]:hover, input[type="button"][disabled]:hover {
+    cursor: not-allowed;
+}
+
+#button-previous-solution, #button-next-solution {
+    display: none;
+}

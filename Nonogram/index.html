@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Nonogram Solver</title>
+    <link rel="stylesheet" type="text/css" href="../fonts/pagella/style.css">
+    <link rel="stylesheet" type="text/css" href="../css/default.css">
+    <link rel="stylesheet" type="text/css" href="../css/modal.css">
+    <link rel="stylesheet" type="text/css" href="css/style.css"> 
+</head>
+<body>
+<div class="content">
+    <h1>Nonogram Solver</h1>
+        <div id="create-modal" class="modal">
+            <div class="modal-content">
+                <span class="close"></span>
+                <p>
+                    <div class="div-table">
+                        <div>
+                            <label>
+                                <input type="number" id="input-width" value="10">
+                                Puzzle Width
+                            </label>
+                        </div>
+                        <div>
+                            <label>
+                                <input type="number" id="input-height" value="10">
+                                Puzzle Height
+                            </label>
+                        </div>
+                        <div>
+                            <input type="button" id="button-create" value="Create Nonogram">
+                        </div>
+                    </div>
+                </p>
+                <p>
+                    <div class="div-table">
+                        <div>
+                            <label>Or try an example Nonogram:
+                                <select style="margin-left: 1.5em" id="select-nonogram">
+                                    <optgroup label="5 x 5">
+                                        <option value="smile">Smile</option>
+                                        <option value="hourglass">Hourglass</option>
+                                    </optgroup>
+                                    <optgroup label="10 x 10">
+                                        <option value="face">Face</option>
+                                        <option value="cocktail">Cocktail</option>
+                                    </optgroup>
+                                    <optgroup label="15 x 15">
+                                        <option value="dolphin">Dolphin</option>
+                                        <option value="chicken">Chicken</option>
+                                    </optgroup>
+                                    <optgroup label="20 x 20">
+                                        <option value="fish">Fish</option>    
+                                    </optgroup>
+                                    <optgroup label="25 x 25">
+                                        <option value="lion">Lion</option>
+                                    </optgroup>
+                                    <optgroup label="30 x 40">
+                                        <option value="heraldic_animal">Heraldic Animal</option>
+                                    </optgroup>
+                                </select>
+                            </label>
+                            <input id="button-load" style="margin-left: 2em" type="button" value="Load">
+                        </div>
+                    </div>
+                </p>
+            </div>
+        </div>
+    <p>
+        <div class="div-table">
+            <div>
+                <input type="button"
+                       value="Create new Nonogram" 
+                       id="button-open-modal">
+            </div>
+            <div>
+                <input type="button"
+                       value="Import"
+                       id="button-import">
+            </div>
+            <div>
+                <input type="button"
+                       value="Export"
+                       id="button-export">
+            </div>
+        </div>
+    </p>
+    <p>
+        <div class="div-table">
+            <div>
+                <input type="button" id="button-solve" value="Solve">
+            </div>
+            <div>
+                <label>
+                    <input type="checkbox" id="checkbox-show-progress" checked="true">
+                    View progress
+                </label>
+            </div>
+            <div>
+                <input id="button-previous-solution" type="button" value="<<">
+                <span  id="solution-text"></span>
+                <input id="button-next-solution" type="button" value=">>">
+            </div>
+        </div>
+    </p>
+    <p>
+        <table id="grid" align="center">
+        </table>
+    </p>
+</div>
+
+<script src="js/examples.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>
